@@ -6,12 +6,12 @@
 class alu
 {
 private:
-    /* data */
+    uint8_t opcode;
 public:
-    alu(/* args */);
+    alu();
     ~alu();
-    void operation_select();
-    void calculate(uint8_t op);
+    void set_opcode(const uint8_t _opcode);
+    uint8_t calculate(const uint8_t operand1, const uint8_t operand2);
 };
 
 
