@@ -96,3 +96,15 @@ void cpu::process_microcycle(){
     *receiver = *transmiter;
     instr_counter ++;
 }
+
+void cpu::execute_program(){
+
+}
+
+void cpu::execute_cycle(){
+
+}
+
+void cpu::execute_micro_cycle(){
+    
+}

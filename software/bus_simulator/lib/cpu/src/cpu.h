@@ -20,12 +20,15 @@ private:
     uint8_t instr_counter;
     std::array<uint8_t, RAM_SIZE> RAM;
     alu ALU;
+    void process_cycle();
+    void process_microcycle();
 public:
     cpu();
     ~cpu();
     void reset();
-    void process_cycle();
-    void process_microcycle();
+    void execute_program();
+    void execute_cycle();
+    void execute_micro_cycle();
 };
 
 #endif
