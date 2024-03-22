@@ -13,17 +13,10 @@ void cpu::reset(){
     R1 = 0;
     R2 = 0;
     Ri = 0;
-    instr_counter = 0;
 }
 
-void cpu::process_cycle(){
-    for(uint8_t i = 0; i < 4; i++){
-        process_microcycle();
-    }
-}
-
-void cpu::process_microcycle(){
-    uint8_t instruction = RAM[Ri];
+void cpu::process_microcycle(const uint8_t address, const uint8_t Rp_pointer = 0){
+    uint8_t instruction = RAM[address];
     uint8_t alu_opcode = instruction & 0b00000011;
     uint8_t rx_ctrl = (instruction & 0b00011100) >> 2;
     uint8_t tx_ctrl = (instruction & 0b11100000) >> 4;
@@ -33,7 +26,7 @@ void cpu::process_microcycle(){
 
     switch (tx_ctrl){
         case 0:
-            transmiter = &instr_counter; 
+            transmiter = &Rp[Rp_pointer]; 
             break;
         case 1:
             transmiter = &Ra;
@@ -94,11 +87,14 @@ void cpu::process_microcycle(){
     
     alu_result = ALU.calculate(R1, R2);
     *receiver = *transmiter;
-    instr_counter ++;
 }
 
 void cpu::execute_program(){
-
+    static uint8_t program_pointer = 0;
+    uint8_t address = 0;
+    while (program_pointer < 16){
+        process_microcycle(address, program_pointer);
+    }
 }
 
 void cpu::execute_cycle(){
@@ -106,5 +102,5 @@ void cpu::execute_cycle(){
 }
 
 void cpu::execute_micro_cycle(){
-    
+
 }

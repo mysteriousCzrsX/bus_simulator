@@ -6,6 +6,7 @@
 #include "alu.h"
 
 #define RAM_SIZE 64
+#define PROGRAM_SIZE RAM_SIZE / 4
 
 class cpu{
 private:
@@ -17,11 +18,10 @@ private:
     uint8_t R2;
     uint8_t Ri; //instruction pointer
     uint8_t alu_ctrl;
-    uint8_t instr_counter;
     std::array<uint8_t, RAM_SIZE> RAM;
+    std::array<uint8_t, PROGRAM_SIZE> Rp;
     alu ALU;
-    void process_cycle();
-    void process_microcycle();
+    void process_microcycle(const uint8_t address, const uint8_t Rp_pointer = 0);
 public:
     cpu();
     ~cpu();
