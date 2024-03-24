@@ -3,6 +3,12 @@
 cpu::cpu()
 :ALU(){
     reset();
+    RAM.fill(0);
+    Rp.fill(0);
+}
+
+cpu::~cpu(){
+
 }
 
 void cpu::reset(){
@@ -13,10 +19,12 @@ void cpu::reset(){
     R1 = 0;
     R2 = 0;
     Ri = 0;
+    Gs = 0;
 }
 
-void cpu::process_microcycle(const uint8_t address, const uint8_t Rp_pointer = 0){
-    uint8_t instruction = RAM[address];
+void cpu::process_microcycle(const uint8_t Rp_pointer = 0){
+    uint8_t address = calculate_address(); //idk if this works 
+    uint8_t instruction = RAM[address]; 
     uint8_t alu_opcode = instruction & 0b00000011;
     uint8_t rx_ctrl = (instruction & 0b00011100) >> 2;
     uint8_t tx_ctrl = (instruction & 0b11100000) >> 4;
@@ -87,20 +95,67 @@ void cpu::process_microcycle(const uint8_t address, const uint8_t Rp_pointer = 0
     
     alu_result = ALU.calculate(R1, R2);
     *receiver = *transmiter;
+
+    Gs++;
+    if(Gs > 3){
+        Gs = 0;
+    }
 }
 
 void cpu::execute_program(){
     static uint8_t program_pointer = 0;
-    uint8_t address = 0;
     while (program_pointer < 16){
-        process_microcycle(address, program_pointer);
+        //schould probably use task scheduler
+        program_pointer++;
+        return;
     }
 }
 
-void cpu::execute_cycle(){
-
+void cpu::execute_program_cycle(const uint8_t program_pointer){
+    static uint8_t ucycle_count = 0;
+    static uint8_t cycle_time = 0;
+    while(ucycle_count < 4){
+        process_microcycle(program_pointer);
+        //????
+    }
 }
 
-void cpu::execute_micro_cycle(){
+void cpu::execute_cycle(const uint8_t Ri_value){
+    for(uint8_t i = 0; i < 4; i++){
+        execute_micro_cycle(Ri_value);
+    }
+}
 
+void cpu::execute_micro_cycle(const uint8_t Ri_value){
+    Ri = Ri_value;
+    process_microcycle();
+}
+
+bool cpu::set_RAM(const uint8_t address, const uint8_t value){
+    if(address > RAM_SIZE || value > 255){
+        return false;
+    }
+    RAM[address] = value;
+    return true;
+}
+
+bool cpu::set_Rp(const uint8_t address, const uint8_t value){
+    if(address > PROGRAM_SIZE || value > 255){
+        return false;
+    }
+    Rp[address] = value;
+    return true;
+}
+
+void cpu::get_register_values(cpu_status &registers){
+    registers.Ra = Ra;
+    registers.Rb = Rb;
+    registers.Rc = Rc;
+    registers.Rwy = Rwy;
+    registers.RAM_address = calculate_address();
+    registers.RAM_value = RAM[registers.RAM_address];
+}
+
+inline uint8_t cpu::calculate_address(){
+    return (Ri << 2) | Gs;
 }
