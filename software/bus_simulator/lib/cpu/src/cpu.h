@@ -33,7 +33,7 @@ private:
 
     alu ALU;
 
-    void process_microcycle(const uint8_t Rp_pointer = 0);
+    void process_microcycle(const uint8_t Rp_pointer);
     inline uint8_t calculate_address();
 public:
     cpu();

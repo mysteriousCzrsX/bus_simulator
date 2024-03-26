@@ -127,4 +127,5 @@ uint8_t alu::calculate(const uint8_t operand1, const uint8_t operand2){
                 break;
         }
    }
+   return calculation_result;
 }
