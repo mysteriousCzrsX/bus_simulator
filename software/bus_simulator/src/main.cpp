@@ -9,15 +9,22 @@
 #include <menuIO/keyIn.h>//keyboard driver and fake stream (for the encoder button)
 #include <menuIO/chainStream.h>// concatenate multiple input streams (this allows adding a button to the encoder)
 
+#include <bus_cpu.h>
+#include <userIO.h>
+
 using namespace Menu;
+
+userIO io(DATA_PIN, CLOCK_PIN, LATCH_PIN, button_pins);
+bus_cpu cpu;
+bus_cpu_status cpu_status;
 
 LiquidCrystal_PCF8574 lcd(0x27);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
 // Encoder /////////////////////////////////////
 
-encoderIn<ENC_S1,ENC_S2> encoder;//simple quad encoder driver
-#define ENC_SENSIVITY 4
-encoderInStream<ENC_S1,ENC_S2> encStream(encoder,ENC_SENSIVITY);// simple quad encoder fake Stream
+encoderIn<ENC_S2,ENC_S1> encoder;//simple quad encoder driver
+
+encoderInStream<ENC_S2,ENC_S1> encStream(encoder,ENC_SENSIVITY);// simple quad encoder fake Stream
 
 //a keyboard with only one key as the encoder button
 keyMap encBtn_map[]={{-ENC_SW,defaultNavCodes[enterCmd].ch}};//negative pin numbers use internal pull-up, this is on when low
@@ -27,52 +34,90 @@ keyIn<1> encButton(encBtn_map);//1 is the number of keys
 menuIn* inputsList[]={&encStream,&encButton};
 chainStream<2> in(inputsList);//3 is the number of inputs
 
-#define LEDPIN LED_BUILTIN
-
-result doAlert(eventMask e, prompt &item);
-
-result showEvent(eventMask e,navNode& nav,prompt& item) {
-  Serial.print("event: ");
-  Serial.println(e);
-  return proceed;
-}
-
-result myLedOff() {
-  return proceed;
-}
-
 uint8_t ram_address_edit = 0;
+uint8_t ram_value = 0;
 
-MENU(ram_edit,"Zapis RAM",showEvent,anyEvent,noStyle
-  ,FIELD(ram_address_edit,"Adres","",0,15,1,1,doNothing,noEvent,wrapStyle)
-  ,OP("Zapisz",showEvent,anyEvent)
+result edit_ram_commit(eventMask e,navNode& nav, prompt &item) {
+  cpu.set_RAM(ram_address_edit, io.read_data_input_buttons());
+  ram_address_edit++;
+  ram_value = cpu.get_RAM(ram_address_edit);
+  return proceed;
+}
+
+result display_ram(eventMask e,navNode& nav, prompt &item) {
+  ram_value = cpu.get_RAM(ram_address_edit);
+  return proceed;
+}
+
+MENU(ram_edit,"Zapis RAM",doNothing,noEvent,noStyle
+  ,FIELD(ram_address_edit,"Adres:","",0,63,1,0,display_ram,anyEvent,wrapStyle)
+  ,OP("Zapisz",edit_ram_commit,enterEvent)
+  ,FIELD(ram_value,"Wartosc:","",0,255,0,0,doNothing,noEvent,noStyle)
   ,EXIT("<Wroc")
 );
 
 uint8_t program_address_edit = 0;
+uint8_t program_value = 0;
 
-MENU(program_edit,"Zapis programu",showEvent,anyEvent,noStyle
-  ,FIELD(program_address_edit,"Adres","",0,15,1,1,doNothing,noEvent,wrapStyle)
-  ,OP("Zapisz",showEvent,anyEvent)
+result edit_programm_commit(eventMask e,navNode& nav, prompt &item) {
+  cpu.set_Rp(program_address_edit, io.read_data_input_buttons());
+  program_address_edit++;
+  program_value = cpu.get_Rp(program_address_edit);
+  return proceed;
+}
+
+result display_program(eventMask e,navNode& nav, prompt &item) {
+  program_value = cpu.get_Rp(program_address_edit);
+  return proceed;
+}
+
+MENU(program_edit,"Zapis programu",doNothing,noEvent,noStyle
+  ,FIELD(program_address_edit,"Adres","",0,15,1,0,display_program,anyEvent,wrapStyle)
+  ,OP("Zapisz",edit_programm_commit,enterEvent)
+  ,FIELD(ram_value,"Wartosc","",0,255,0,0,doNothing,noEvent,noStyle)
   ,EXIT("<Wroc")
 );
 
-MENU(program_mode,"Program",showEvent,anyEvent,noStyle
-  ,OP("Pauza",showEvent,anyEvent)
-  ,OP("Start",showEvent,anyEvent)
+result end_execution_commit(eventMask e,navNode& nav, prompt &item) {
+  //stop cpu
+  cpu.reset();
+  return quit;
+}
+
+bool execution_running = false;
+
+TOGGLE(execution_running,execState,"Stan: ",doNothing,noEvent,wrapStyle
+  ,VALUE("Pauza",false,doNothing,noEvent)
+  ,VALUE("Praca",true,doNothing,noEvent)
 );
 
-MENU(cycle_mode,"Cykl",showEvent,anyEvent,noStyle
-  ,OP("Kontynuuj",showEvent,anyEvent)
-  ,OP("Zakoncz",showEvent,anyEvent)
+registers displayed_register = Ra;
+
+TOGGLE(displayed_register,dispReg,"Rejestr: ",doNothing,noEvent,wrapStyle
+  ,VALUE("Ra",registers::Ra,doNothing,noEvent)
+  ,VALUE("Rb",registers::Rb,doNothing,noEvent)
+  ,VALUE("Rc",registers::Rc,doNothing,noEvent)
 );
 
-MENU(ucycle_mode,"Mikrocykl",showEvent,anyEvent,noStyle
-  ,OP("Kontynuuj",showEvent,anyEvent)
-  ,OP("Zakoncz",showEvent,anyEvent)
+MENU(program_mode,"Program",doNothing,noEvent,noStyle
+  ,SUBMENU(execState)
+  ,SUBMENU(dispReg)
+  ,OP("Zakoncz",end_execution_commit,enterEvent)
 );
 
-MENU(start_execution,"Sub-Menu",showEvent,anyEvent,noStyle
+MENU(cycle_mode,"Cykl",doNothing,noEvent,noStyle
+  ,OP("Kontynuuj",doNothing,noEvent)
+  ,SUBMENU(dispReg)
+  ,OP("Zakoncz",end_execution_commit,enterEvent)
+);
+
+MENU(ucycle_mode,"Mikrocykl",doNothing,noEvent,noStyle
+  ,OP("Kontynuuj",doNothing,noEvent)
+  ,SUBMENU(dispReg)
+  ,OP("Zakoncz",end_execution_commit,enterEvent)
+);
+
+MENU(start_execution,"Praca",doNothing,noEvent,noStyle
   ,SUBMENU(program_mode)
   ,SUBMENU(cycle_mode)
   ,SUBMENU(ucycle_mode)
@@ -81,34 +126,30 @@ MENU(start_execution,"Sub-Menu",showEvent,anyEvent,noStyle
 
 uint8_t execution_speed = 50;
 
+result reset_system_commit(eventMask e,navNode& nav, prompt &item) {
+  cpu.clear();
+  return proceed;
+}
+
 MENU(busMainMenu,"Szyna danych",doNothing,noEvent,wrapStyle
   ,SUBMENU(ram_edit)
   ,SUBMENU(program_edit)
   ,SUBMENU(start_execution)
-  ,FIELD(execution_speed,"Czestotliwosc pracy","%",0,100,10,1,doNothing,noEvent,wrapStyle)
-  ,OP("Reset",myLedOff,enterEvent)
+  ,FIELD(execution_speed,"Predkosc pracy","%",0,100,10,0,doNothing,noEvent,wrapStyle)
+  ,OP("Reset",reset_system_commit,enterEvent)
 );
 
-#define MAX_DEPTH 3
+MENU_OUTPUTS(out, 3, LCD_OUT(lcd,{0,0,20,4}), NONE);
+NAVROOT(nav, busMainMenu, 3, in, out);//the navigation root object, 3 is the nesting level
 
-// idx_t tops[MAX_DEPTH]={0,0};
-// const panel panels[] MEMMODE={{0,0,16,2}};
-// navNode* nodes[MAX_DEPTH];
-// panelsList pList(panels,nodes,1);
-// lcdOut outLCD(&lcd,tops,pList);//output device for LCD
-// menuOut* constMEM outputs[] MEMMODE={&outLCD};//list of output devices
-// outputsList out(outputs,1);//outputs list with 1 outputs
-
-MENU_OUTPUTS(out, MAX_DEPTH, LCD_OUT(lcd,{0,0,20,4}), NONE);
-NAVROOT(nav,busMainMenu,MAX_DEPTH,in,out);//the navigation root object
-
-result alert(menuOut& o,idleEvent e) {
+result user_input(menuOut& o,idleEvent e) {
   if (e==idling) {
     o.setCursor(0,0);
-    o.print("alert test");
+    o.print("Wprowadz dane:");
     o.setCursor(0,1);
-    o.print("[select] to continue...");
+    o.print("nastepnie zatiwerdz");
   }
+  userio.read_data_input_buttons();
   return proceed;
 }
 
@@ -117,41 +158,30 @@ result doAlert(eventMask e, prompt &item) {
   return proceed;
 }
 
-result idle(menuOut& o,idleEvent e) {
-  switch(e) {
-    case idleStart:o.print("suspending menu!");break;
-    case idling:o.print("suspended...");break;
-    case idleEnd:o.print("resuming menu.");break;
-  }
-  return proceed;
-}
-
 void setup() {
   pinMode(ENC_SW,INPUT_PULLUP);
-  pinMode(LEDPIN,OUTPUT);
   Serial.begin(115200);
-  Serial.println("Arduino Menu Library");
+  Serial.println("Starting up...");
   encoder.begin();
   Wire.setSCL(LCD_SCL);
   Wire.setSDA(LCD_SDA);
   Wire.begin();
   lcd.begin(20, 4);
-  nav.idleTask=idle;//point a function to be used when menu is suspended
-  mainMenu[1].enabled=disabledStatus;
+  busMainMenu[1].enabled=disabledStatus;
   nav.showTitle=false;
   lcd.setBacklight(255);
   lcd.home();
   lcd.clear();
-  lcd.print("LCD_bruh");
+  lcd.print("Szyna danych");
   lcd.setCursor(0, 1);
-  lcd.print("aaaa");
+  lcd.print("symulator V1.0");
   delay(2000);
 }
 
 void loop() {
   nav.poll();
-  digitalWrite(LEDPIN, ledCtrl);
-  test=(millis()/1000)%101;
-  Serial.println("test: ");
+  io.set_displayed_register(displayed_register);
+  cpu.get_register_values(cpu_status);
+  io.render_led(cpu_status);
   delay(100);
 }

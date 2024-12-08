@@ -2,9 +2,7 @@
 
 bus_cpu::bus_cpu()
 :ALU(){
-    reset();
-    RAM.fill(0);
-    Rp.fill(0);
+    clear();
 }
 
 bus_cpu::~bus_cpu(){
@@ -20,9 +18,17 @@ void bus_cpu::reset(){
     R2 = 0;
     Ri = 0;
     Gs = 0;
+    Rp_address = 0;
+    internal_state = READY;
 }
 
-void bus_cpu::process_microcycle(const uint8_t Rp_pointer = 0){
+void bus_cpu::clear(){
+    reset();
+    RAM.fill(0);
+    Rp.fill(0);
+}
+
+ucycle_status bus_cpu::process_microcycle(){
     uint8_t address = calculate_address(); //idk if this works 
     uint8_t instruction = RAM[address]; 
     uint8_t alu_opcode = instruction & 0b00000011;
@@ -34,7 +40,7 @@ void bus_cpu::process_microcycle(const uint8_t Rp_pointer = 0){
 
     switch (tx_ctrl){
         case 0:
-            transmiter = &Rp[Rp_pointer]; 
+            transmiter = &Rp[Rp_address]; 
             break;
         case 1:
             transmiter = &Ra;
@@ -50,12 +56,12 @@ void bus_cpu::process_microcycle(const uint8_t Rp_pointer = 0){
             break;
         case 5: 
             //call user input function
+            return NEED_INPUT;
             uint8_t user_input;
             transmiter = &user_input;
             break;
         default:
-            //assert sth
-            return;
+            return ERROR;
             break;
     }
 
@@ -88,8 +94,7 @@ void bus_cpu::process_microcycle(const uint8_t Rp_pointer = 0){
             receiver = &Rwy;
             break;
         default:
-            //assert sth
-            return;
+            return ERROR;
             break;
     }
     
@@ -98,37 +103,70 @@ void bus_cpu::process_microcycle(const uint8_t Rp_pointer = 0){
 
     Gs++;
     if(Gs > 3){
+        Rp_address++;
         Gs = 0;
     }
+    return SUCCESS;
 }
 
-void bus_cpu::execute_program(){
-    static uint8_t program_pointer = 0;
-    while (program_pointer < 16){
-        //schould probably use task scheduler
-        program_pointer++;
-        return;
+bus_cpu_state schedule_execution(const execution_type type){
+    ucycle_status status;
+    if (internal_state == EXECUTION){
+        status = process_microcycle();
+        switch (status){
+            case SUCCESS:
+                switch (type){
+                    case CYCLE:
+                        if(Gs == 0){
+                            internal_state = CYCLE_DONE;
+                        }
+                        break;
+                    case MICRO_CYCLE:
+                        internal_state = CYCLE_DONE;
+                        break;
+                    case PROGRAM:
+                        if (Rp_address > 15){
+                            internal_state = DONE;
+                        }
+                        break;
+                    default:
+                        internal_state = ERROR;
+                        break;
+                }
+                if (Rp_address > 15){
+                    internal_state = DONE;
+                }
+                break;
+            case NEED_INPUT:
+                internal_state = NEED_INPUT;
+                break;
+            case ERROR:
+                internal_state = ERROR;
+                break;
+            default:
+                internal_state = ERROR;
+                break;
+        }
+    }
+    return internal_state;
+}
+
+void bus_cpu::start_execution(){
+    if(internal_state == READY){
+        internal_state = EXECUTION;
     }
 }
 
-void bus_cpu::execute_program_cycle(const uint8_t program_pointer){
-    static uint8_t ucycle_count = 0;
-    static uint8_t cycle_time = 0;
-    while(ucycle_count < 4){
-        process_microcycle(program_pointer);
-        //????
+void bus_cpu::pause_execution(){
+    if(internal_state == EXECUTION){
+        internal_state = PAUSED;
     }
 }
 
-void bus_cpu::execute_cycle(const uint8_t Ri_value){
-    for(uint8_t i = 0; i < 4; i++){
-        execute_micro_cycle(Ri_value);
+void bus_cpu::continue_execution(){
+    if(internal_state == PAUSED || internal_state == CYCLE_DONE){
+        internal_state = EXECUTION;
     }
-}
-
-void bus_cpu::execute_micro_cycle(const uint8_t Ri_value){
-    Ri = Ri_value;
-    process_microcycle();
 }
 
 bool bus_cpu::set_RAM(const uint8_t address, const uint8_t value){
@@ -139,12 +177,26 @@ bool bus_cpu::set_RAM(const uint8_t address, const uint8_t value){
     return true;
 }
 
+uint8_t bus_cpu::get_RAM(const uint8_t address){
+    if(address > RAM_SIZE){
+        return 0;
+    }
+    return RAM[address];
+}
+
 bool bus_cpu::set_Rp(const uint8_t address, const uint8_t value){
     if(address > PROGRAM_SIZE || value > 255){
         return false;
     }
     Rp[address] = value;
     return true;
+}
+
+uint8_t bus_cpu::get_Rp(const uint8_t address){
+    if(address > PROGRAM_SIZE){
+        return 0;
+    }
+    return Rp[address];
 }
 
 void bus_cpu::get_register_values(bus_cpu_status &registers){

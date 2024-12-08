@@ -3,11 +3,11 @@
 
 #include <ShiftRegister74HC595.h>
 #include <array>
-#include <cpu.h>
+#include <bus_cpu.h>
 
 #define REG_NO 3
 
-enum rgisters{
+enum registers{
     Ra = 0,
     Rb = 1,
     Rc = 2
@@ -17,7 +17,7 @@ class userIO{
 private:
     ShiftRegister74HC595<REG_NO> shift_register;
     std::array<uint8_t, 12> buttons;
-    enum rgisters displayed_register;
+    enum registers displayed_register;
 
     uint16_t read_all_buttons();
 public:
@@ -27,8 +27,8 @@ public:
     void self_test();
     uint8_t read_user_input_buttons();
     uint8_t read_data_input_buttons();
-    void render_led(const cpu_status status);
-    void set_displayed_register(const enum rgisters reg);
+    void render_led(const bus_cpu_status status);
+    void set_displayed_register(const enum registers reg);
 };
 
 #endif

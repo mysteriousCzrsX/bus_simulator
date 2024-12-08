@@ -30,7 +30,7 @@ uint8_t userIO::read_data_input_buttons(){
     return read_all_buttons() & 0x00FF;
 }
 
-void userIO::render_led(const cpu_status status){
+void userIO::render_led(const bus_cpu_status status){
     uint8_t led_values[REG_NO] = {0, 0, 0};
     led_values[0] = status.RAM_value;
     led_values[1] = status.Rwy;
@@ -52,7 +52,7 @@ void userIO::render_led(const cpu_status status){
     shift_register.setAll(led_values);
 }
 
-void userIO::set_displayed_register(const enum rgisters reg){
+void userIO::set_displayed_register(const enum registers reg){
     displayed_register = reg;
 }
 
@@ -63,7 +63,7 @@ void userIO::self_test(){
     shift_register.setAllLow();
     delay(500);
 
-    cpu_status test_status = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    bus_cpu_status test_status = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
     Serial.println("Displaying RAM value");
     test_status.RAM_value = 0x0F;
