@@ -25,7 +25,7 @@ keyIn<1> encButton(encBtn_map);//1 is the number of keys
 
 //input from the encoder + encoder button + serial
 menuIn* inputsList[]={&encStream,&encButton};
-chainStream<3> in(inputsList);//3 is the number of inputs
+chainStream<2> in(inputsList);//3 is the number of inputs
 
 #define LEDPIN LED_BUILTIN
 
@@ -37,100 +37,59 @@ result showEvent(eventMask e,navNode& nav,prompt& item) {
   return proceed;
 }
 
-int test=55;
-
-result action1(eventMask e,navNode& nav, prompt &item) {
-  Serial.print("action1 event: ");
-  Serial.print(e);
-  Serial.println(", proceed menu");
-  Serial.flush();
-  return proceed;
-}
-
-result action2(eventMask e,navNode& nav, prompt &item) {
-  Serial.print("action2 event: ");
-  Serial.print(e);
-  Serial.println(", quiting menu.");
-  Serial.flush();
-  return quit;
-}
-
-int ledCtrl=LOW;
-
-result myLedOn() {
-  ledCtrl=HIGH;
-  return proceed;
-}
 result myLedOff() {
-  ledCtrl=LOW;
   return proceed;
 }
 
-TOGGLE(ledCtrl,setLed,"Led: ",doNothing,noEvent,noStyle//,doExit,enterEvent,noStyle
-  ,VALUE("On",HIGH,doNothing,noEvent)
-  ,VALUE("Off",LOW,doNothing,noEvent)
+uint8_t ram_address_edit = 0;
+
+MENU(ram_edit,"Zapis RAM",showEvent,anyEvent,noStyle
+  ,FIELD(ram_address_edit,"Adres","",0,15,1,1,doNothing,noEvent,wrapStyle)
+  ,OP("Zapisz",showEvent,anyEvent)
+  ,EXIT("<Wroc")
 );
 
-int selTest=0;
-SELECT(selTest,selMenu,"Select",doNothing,noEvent,noStyle
-  ,VALUE("Zero",0,doNothing,noEvent)
-  ,VALUE("One",1,doNothing,noEvent)
-  ,VALUE("Two",2,doNothing,noEvent)
+uint8_t program_address_edit = 0;
+
+MENU(program_edit,"Zapis programu",showEvent,anyEvent,noStyle
+  ,FIELD(program_address_edit,"Adres","",0,15,1,1,doNothing,noEvent,wrapStyle)
+  ,OP("Zapisz",showEvent,anyEvent)
+  ,EXIT("<Wroc")
 );
 
-int chooseTest=-1;
-CHOOSE(chooseTest,chooseMenu,"Choose",doNothing,noEvent,noStyle
-  ,VALUE("First",1,doNothing,noEvent)
-  ,VALUE("Second",2,doNothing,noEvent)
-  ,VALUE("Third",3,doNothing,noEvent)
-  ,VALUE("Last",-1,doNothing,noEvent)
+MENU(program_mode,"Program",showEvent,anyEvent,noStyle
+  ,OP("Pauza",showEvent,anyEvent)
+  ,OP("Start",showEvent,anyEvent)
 );
 
-//customizing a prompt look!
-//by extending the prompt class
-class altPrompt:public prompt {
-public:
-  altPrompt(constMEM promptShadow& p):prompt(p) {}
-  Used printTo(navRoot &root,bool sel,menuOut& out, idx_t idx,idx_t len,idx_t) override {
-    return out.printRaw(F("special prompt!"),len);
-  }
-};
-
-MENU(subMenu,"Sub-Menu",showEvent,anyEvent,noStyle
-  ,OP("Sub1",showEvent,anyEvent)
-  ,OP("Sub2",showEvent,anyEvent)
-  ,OP("Sub3",showEvent,anyEvent)
-  ,altOP(altPrompt,"",showEvent,anyEvent)
-  ,EXIT("<Back")
+MENU(cycle_mode,"Cykl",showEvent,anyEvent,noStyle
+  ,OP("Kontynuuj",showEvent,anyEvent)
+  ,OP("Zakoncz",showEvent,anyEvent)
 );
 
-/*extern menu mainMenu;
-TOGGLE((mainMenu[1].enabled),togOp,"Op 2:",doNothing,noEvent,noStyle
-  ,VALUE("Enabled",enabledStatus,doNothing,noEvent)
-  ,VALUE("disabled",disabledStatus,doNothing,noEvent)
-);*/
-
-char* constMEM hexDigit MEMMODE="0123456789ABCDEF";
-char* constMEM hexNr[] MEMMODE={"0","x",hexDigit,hexDigit};
-char buf1[]="0x11";
-
-MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
-  ,OP("Op1",action1,anyEvent)
-  ,OP("Op2",action2,enterEvent)
-  //,SUBMENU(togOp)
-  ,FIELD(test,"Test","%",0,100,10,1,doNothing,noEvent,wrapStyle)
-  ,SUBMENU(subMenu)
-  ,SUBMENU(setLed)
-  ,OP("LED On",myLedOn,enterEvent)
-  ,OP("LED Off",myLedOff,enterEvent)
-  ,SUBMENU(selMenu)
-  ,SUBMENU(chooseMenu)
-  ,OP("Alert test",doAlert,enterEvent)
-  ,EDIT("Hex",buf1,hexNr,doNothing,noEvent,noStyle)
-  ,EXIT("<Back")
+MENU(ucycle_mode,"Mikrocykl",showEvent,anyEvent,noStyle
+  ,OP("Kontynuuj",showEvent,anyEvent)
+  ,OP("Zakoncz",showEvent,anyEvent)
 );
 
-#define MAX_DEPTH 2
+MENU(start_execution,"Sub-Menu",showEvent,anyEvent,noStyle
+  ,SUBMENU(program_mode)
+  ,SUBMENU(cycle_mode)
+  ,SUBMENU(ucycle_mode)
+  ,EXIT("<Wroc")
+);
+
+uint8_t execution_speed = 50;
+
+MENU(busMainMenu,"Szyna danych",doNothing,noEvent,wrapStyle
+  ,SUBMENU(ram_edit)
+  ,SUBMENU(program_edit)
+  ,SUBMENU(start_execution)
+  ,FIELD(execution_speed,"Czestotliwosc pracy","%",0,100,10,1,doNothing,noEvent,wrapStyle)
+  ,OP("Reset",myLedOff,enterEvent)
+);
+
+#define MAX_DEPTH 3
 
 // idx_t tops[MAX_DEPTH]={0,0};
 // const panel panels[] MEMMODE={{0,0,16,2}};
@@ -140,11 +99,8 @@ MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
 // menuOut* constMEM outputs[] MEMMODE={&outLCD};//list of output devices
 // outputsList out(outputs,1);//outputs list with 1 outputs
 
-MENU_OUTPUTS(out,MAX_DEPTH
-  ,LCD_OUT(lcd,{0,0,16,2})
-  ,NONE
-);
-NAVROOT(nav,mainMenu,MAX_DEPTH,in,out);//the navigation root object
+MENU_OUTPUTS(out, MAX_DEPTH, LCD_OUT(lcd,{0,0,20,4}), NONE);
+NAVROOT(nav,busMainMenu,MAX_DEPTH,in,out);//the navigation root object
 
 result alert(menuOut& o,idleEvent e) {
   if (e==idling) {
@@ -175,25 +131,27 @@ void setup() {
   pinMode(LEDPIN,OUTPUT);
   Serial.begin(115200);
   Serial.println("Arduino Menu Library");
-  //encoder.begin();
+  encoder.begin();
   Wire.setSCL(LCD_SCL);
   Wire.setSDA(LCD_SDA);
   Wire.begin();
   lcd.begin(20, 4);
-  // nav.idleTask=idle;//point a function to be used when menu is suspended
-  // mainMenu[1].enabled=disabledStatus;
-  // nav.showTitle=false;
+  nav.idleTask=idle;//point a function to be used when menu is suspended
+  mainMenu[1].enabled=disabledStatus;
+  nav.showTitle=false;
   lcd.setBacklight(255);
-  lcd.setCursor(0, 0);
-  lcd.print("Menu 4.x LCD");
+  lcd.home();
+  lcd.clear();
+  lcd.print("LCD_bruh");
   lcd.setCursor(0, 1);
-  lcd.print("r-site.net");
+  lcd.print("aaaa");
   delay(2000);
 }
 
 void loop() {
-  // nav.poll();
-  // digitalWrite(LEDPIN, ledCtrl);
-  // test=(millis()/1000)%101;
-  // delay(100);
+  nav.poll();
+  digitalWrite(LEDPIN, ledCtrl);
+  test=(millis()/1000)%101;
+  Serial.println("test: ");
+  delay(100);
 }
