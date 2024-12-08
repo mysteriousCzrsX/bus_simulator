@@ -1,5 +1,5 @@
-#ifndef _CPU
-#define _CPU
+#ifndef _BUS_bus_cpu
+#define _BUS_bus_cpu
 
 #include<stdint.h>
 #include<array>
@@ -8,7 +8,7 @@
 #define RAM_SIZE 64
 #define PROGRAM_SIZE RAM_SIZE / 4
 
-struct cpu_status{
+struct bus_cpu_status{
     uint8_t Ra;
     uint8_t Rb;
     uint8_t Rc;
@@ -17,7 +17,7 @@ struct cpu_status{
     uint8_t RAM_value;
 };
 
-class cpu{
+class bus_cpu{
 private:
     uint8_t Ra;
     uint8_t Rb;
@@ -36,8 +36,8 @@ private:
     void process_microcycle(const uint8_t Rp_pointer);
     inline uint8_t calculate_address();
 public:
-    cpu();
-    ~cpu();
+    bus_cpu();
+    ~bus_cpu();
     void reset();
     void execute_program();
     void execute_program_cycle(const uint8_t program_pointer);
@@ -46,7 +46,7 @@ public:
     void execute_micro_cycle(const uint8_t Ri_value);
     bool set_RAM(const uint8_t address, const uint8_t value);
     bool set_Rp(const uint8_t address, const uint8_t value);
-    void get_register_values(cpu_status &registers);
+    void get_register_values(bus_cpu_status &registers);
 };
 
 #endif

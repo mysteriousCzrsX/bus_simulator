@@ -1,17 +1,17 @@
-#include "cpu.h"
+#include "bus_cpu.h"
 
-cpu::cpu()
+bus_cpu::bus_cpu()
 :ALU(){
     reset();
     RAM.fill(0);
     Rp.fill(0);
 }
 
-cpu::~cpu(){
+bus_cpu::~bus_cpu(){
 
 }
 
-void cpu::reset(){
+void bus_cpu::reset(){
     Ra = 0;
     Rb = 0;
     Rc = 0;
@@ -22,7 +22,7 @@ void cpu::reset(){
     Gs = 0;
 }
 
-void cpu::process_microcycle(const uint8_t Rp_pointer = 0){
+void bus_cpu::process_microcycle(const uint8_t Rp_pointer = 0){
     uint8_t address = calculate_address(); //idk if this works 
     uint8_t instruction = RAM[address]; 
     uint8_t alu_opcode = instruction & 0b00000011;
@@ -102,7 +102,7 @@ void cpu::process_microcycle(const uint8_t Rp_pointer = 0){
     }
 }
 
-void cpu::execute_program(){
+void bus_cpu::execute_program(){
     static uint8_t program_pointer = 0;
     while (program_pointer < 16){
         //schould probably use task scheduler
@@ -111,7 +111,7 @@ void cpu::execute_program(){
     }
 }
 
-void cpu::execute_program_cycle(const uint8_t program_pointer){
+void bus_cpu::execute_program_cycle(const uint8_t program_pointer){
     static uint8_t ucycle_count = 0;
     static uint8_t cycle_time = 0;
     while(ucycle_count < 4){
@@ -120,18 +120,18 @@ void cpu::execute_program_cycle(const uint8_t program_pointer){
     }
 }
 
-void cpu::execute_cycle(const uint8_t Ri_value){
+void bus_cpu::execute_cycle(const uint8_t Ri_value){
     for(uint8_t i = 0; i < 4; i++){
         execute_micro_cycle(Ri_value);
     }
 }
 
-void cpu::execute_micro_cycle(const uint8_t Ri_value){
+void bus_cpu::execute_micro_cycle(const uint8_t Ri_value){
     Ri = Ri_value;
     process_microcycle();
 }
 
-bool cpu::set_RAM(const uint8_t address, const uint8_t value){
+bool bus_cpu::set_RAM(const uint8_t address, const uint8_t value){
     if(address > RAM_SIZE || value > 255){
         return false;
     }
@@ -139,7 +139,7 @@ bool cpu::set_RAM(const uint8_t address, const uint8_t value){
     return true;
 }
 
-bool cpu::set_Rp(const uint8_t address, const uint8_t value){
+bool bus_cpu::set_Rp(const uint8_t address, const uint8_t value){
     if(address > PROGRAM_SIZE || value > 255){
         return false;
     }
@@ -147,7 +147,7 @@ bool cpu::set_Rp(const uint8_t address, const uint8_t value){
     return true;
 }
 
-void cpu::get_register_values(cpu_status &registers){
+void bus_cpu::get_register_values(bus_cpu_status &registers){
     registers.Ra = Ra;
     registers.Rb = Rb;
     registers.Rc = Rc;
@@ -156,6 +156,6 @@ void cpu::get_register_values(cpu_status &registers){
     registers.RAM_value = RAM[registers.RAM_address];
 }
 
-inline uint8_t cpu::calculate_address(){
+inline uint8_t bus_cpu::calculate_address(){
     return (Ri << 2) | Gs;
 }
