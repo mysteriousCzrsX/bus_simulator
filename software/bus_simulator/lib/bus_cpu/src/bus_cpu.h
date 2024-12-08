@@ -23,9 +23,9 @@ enum bus_cpu_state{
     EXECUTION = 1,
     CYCLE_DONE = 2,
     DONE = 3,
-    NEED_INPUT = 4,
+    USER_INPUT = 4,
     PAUSED = 5,
-    ERROR = 6
+    EXCEPTION = 6
 };
 
 enum ucycle_status{
@@ -53,14 +53,15 @@ private:
     uint8_t Gs;
 
     uint8_t Rp_address;
+    uint8_t user_input;
+    bool user_input_ready = false;
 
     std::array<uint8_t, RAM_SIZE> RAM;
     std::array<uint8_t, PROGRAM_SIZE> Rp;
 
     alu ALU;
 
-    internal_state state;
-    execution_type execution_type;
+    bus_cpu_state internal_state;
 
     ucycle_status process_microcycle();
     inline uint8_t calculate_address();
@@ -72,6 +73,7 @@ public:
     void start_execution();
     void pause_execution();
     void continue_execution();
+    void take_user_input(uint8_t input);
 
     bus_cpu_state schedule_execution(const execution_type type);
     bool set_RAM(const uint8_t address, const uint8_t value);

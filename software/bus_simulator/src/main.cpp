@@ -105,14 +105,20 @@ MENU(program_mode,"Program",doNothing,noEvent,noStyle
   ,OP("Zakoncz",end_execution_commit,enterEvent)
 );
 
+result continue_execution_commit(eventMask e,navNode& nav, prompt &item) {
+  //stop cpu
+  cpu.continue_execution();
+  return proceed;
+}
+
 MENU(cycle_mode,"Cykl",doNothing,noEvent,noStyle
-  ,OP("Kontynuuj",doNothing,noEvent)
+  ,OP("Kontynuuj",continue_execution_commit,enterEvent)
   ,SUBMENU(dispReg)
   ,OP("Zakoncz",end_execution_commit,enterEvent)
 );
 
 MENU(ucycle_mode,"Mikrocykl",doNothing,noEvent,noStyle
-  ,OP("Kontynuuj",doNothing,noEvent)
+  ,OP("Kontynuuj",continue_execution_commit,enterEvent)
   ,SUBMENU(dispReg)
   ,OP("Zakoncz",end_execution_commit,enterEvent)
 );
@@ -149,12 +155,7 @@ result user_input(menuOut& o,idleEvent e) {
     o.setCursor(0,1);
     o.print("nastepnie zatiwerdz");
   }
-  userio.read_data_input_buttons();
-  return proceed;
-}
-
-result doAlert(eventMask e, prompt &item) {
-  nav.idleOn(alert);
+  io.read_data_input_buttons();
   return proceed;
 }
 
@@ -179,7 +180,27 @@ void setup() {
 }
 
 void loop() {
+  static bus_cpu_state cpu_state;
   nav.poll();
+  cpu_state = cpu.schedule_execution(execution_type::CYCLE);
+  switch (cpu_state) {
+    case bus_cpu_state::READY:
+      break;
+    case bus_cpu_state::EXECUTION:
+      break;
+    case bus_cpu_state::CYCLE_DONE:
+      break;
+    case bus_cpu_state::DONE:
+      break;
+    case bus_cpu_state::USER_INPUT:
+      nav.idleOn(user_input);
+      break;
+    case bus_cpu_state::PAUSED:
+      break;
+    case bus_cpu_state::EXCEPTION:
+      Serial.println("Exception occured");
+      break;
+  }
   io.set_displayed_register(displayed_register);
   cpu.get_register_values(cpu_status);
   io.render_led(cpu_status);

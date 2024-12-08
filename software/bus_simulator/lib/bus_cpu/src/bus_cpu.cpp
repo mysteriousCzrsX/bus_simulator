@@ -55,10 +55,11 @@ ucycle_status bus_cpu::process_microcycle(){
             transmiter = &alu_result;
             break;
         case 5: 
-            //call user input function
-            return NEED_INPUT;
-            uint8_t user_input;
+            if(!user_input_ready){
+                return NEED_INPUT;
+            }
             transmiter = &user_input;
+            user_input_ready = false;
             break;
         default:
             return ERROR;
@@ -109,7 +110,7 @@ ucycle_status bus_cpu::process_microcycle(){
     return SUCCESS;
 }
 
-bus_cpu_state schedule_execution(const execution_type type){
+bus_cpu_state bus_cpu::schedule_execution(const execution_type type){
     ucycle_status status;
     if (internal_state == EXECUTION){
         status = process_microcycle();
@@ -130,7 +131,7 @@ bus_cpu_state schedule_execution(const execution_type type){
                         }
                         break;
                     default:
-                        internal_state = ERROR;
+                        internal_state = EXCEPTION;
                         break;
                 }
                 if (Rp_address > 15){
@@ -138,13 +139,13 @@ bus_cpu_state schedule_execution(const execution_type type){
                 }
                 break;
             case NEED_INPUT:
-                internal_state = NEED_INPUT;
+                internal_state = USER_INPUT;
                 break;
             case ERROR:
-                internal_state = ERROR;
+                internal_state = EXCEPTION;
                 break;
             default:
-                internal_state = ERROR;
+                internal_state = EXCEPTION;
                 break;
         }
     }
@@ -167,6 +168,12 @@ void bus_cpu::continue_execution(){
     if(internal_state == PAUSED || internal_state == CYCLE_DONE){
         internal_state = EXECUTION;
     }
+}
+
+void bus_cpu::take_user_input(uint8_t input){
+    user_input = input;
+    user_input_ready = true;
+    internal_state = EXECUTION;
 }
 
 bool bus_cpu::set_RAM(const uint8_t address, const uint8_t value){
