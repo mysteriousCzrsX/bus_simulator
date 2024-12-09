@@ -72,26 +72,23 @@ ucycle_status bus_cpu::process_microcycle(){
             ALU.set_opcode(alu_opcode);
             break;
         case 1:
-            receiver = &Ri;
-            break;
-        case 2:
             receiver = &Ra;
             break;
-        case 3:
+        case 2:
             receiver = &Rb;
             break;
-        case 4:
+        case 3:
             receiver = &Rc;
             break;
-        case 5:
+        case 4:
             receiver = &R1;
             ALU.set_opcode(alu_opcode);
             break;
-        case 6:
+        case 5:
             receiver = &R2;
             ALU.set_opcode(alu_opcode);
             break;
-        case 7:
+        case 6:
             receiver = &Rwy;
             break;
         default:
