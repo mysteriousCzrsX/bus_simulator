@@ -163,13 +163,14 @@ MENU_OUTPUTS(out, 3, LCD_OUT(lcd,{0,0,20,4}), NONE);
 NAVROOT(nav, busMainMenu, 3, in, out);//the navigation root object, 3 is the nesting level
 
 result user_input(menuOut& o,idleEvent e) {
-  if (e==idling) {
-    o.setCursor(0,0);
-    o.print("Wprowadz dane:");
-    o.setCursor(0,1);
-    o.print("nastepnie zatiwerdz");
+  switch(e) {
+    case idleStart:
+      o.print("Wprowadz wartosc");
+      break;
+    case idleEnd:
+      cpu.take_user_input(io.read_user_input_buttons());
+    break;
   }
-  io.read_data_input_buttons();
   return proceed;
 }
 
