@@ -4769,7 +4769,7 @@
 		)
 		(uuid b53c76ef-6ce4-4190-9f1d-fe5db976d5b8)
 	)
-	(text "Ra/Rb/Rc"
+	(text "Rwy"
 		(exclude_from_sim no)
 		(at 128.27 26.035 0)
 		(effects
@@ -4802,7 +4802,7 @@
 		)
 		(uuid "282d90c4-b748-4a6e-a730-86044a1daa2d")
 	)
-	(text "Rwy"
+	(text "Ra/Rb/Rc"
 		(exclude_from_sim no)
 		(at 158.75 26.035 0)
 		(effects
