@@ -5,23 +5,41 @@ bus_cpu::bus_cpu()
 :ALU(){
     clear();
     #ifdef CPUU_DEMO
+    // RAM[0] = 0b10100100;
+    // RAM[1] = 0b00101000;
+    // RAM[2] = 0b00101000;;
+    // RAM[3] = 0;
+
+    // RAM[4] = 0;
+    // RAM[5] = 0b00110010;
+    // RAM[6] = 0b00110101;
+    // RAM[7] = 0b10000100;
+
+    // RAM[8] = 0;
+    // RAM[9] = 0b00110001;
+    // RAM[10] = 0b01010101;
+    // RAM[11] = 0b10011000;
+
     RAM[0] = 0b10100100;
-    RAM[1] = 0b00101000;
-    RAM[2] = 0b00101000;;
-    RAM[3] = 0;
+    RAM[1] = 0b00100100;
+    RAM[2] = 0b00100100;
+    RAM[3] = 0b00100000;
 
-    RAM[4] = 0;
-    RAM[5] = 0b00110010;
-    RAM[6] = 0b00110101;
-    RAM[7] = 0b10000100;
+    RAM[4] = 0b00000010;
+    RAM[5] = 0b00110000;
+    RAM[6] = 0b00110100;
+    RAM[7] = 0b10011000;
 
-    RAM[8] = 0;
-    RAM[9] = 0b00110001;
-    RAM[10] = 0b01010101;
+    RAM[8] = 0b00000001;
+    RAM[9] = 0b00110000;
+    RAM[10] = 0b00110101;
     RAM[11] = 0b10011000;
+
     for(int i = 0; i < 16; i++){
         Rp[i] = i+1;
     }
+    Rp[1] = 3;
+    Rp[2] = 3;
     #endif
 }
 
@@ -51,7 +69,7 @@ void bus_cpu::clear(){
 }
 
 ucycle_status bus_cpu::process_microcycle(){
-    uint8_t address = calculate_address(); //idk if this works 
+    uint8_t address = calculate_address();
     Serial.print("CPU> RAM Address: ");
     Serial.println(address);
     uint8_t instruction = RAM[address]; 
@@ -59,11 +77,7 @@ ucycle_status bus_cpu::process_microcycle(){
     Serial.println(instruction);
     uint8_t alu_opcode = instruction & 0b00000011;
     uint8_t rx_ctrl = (instruction & 0b00011100) >> 2;
-    Serial.print("CPU> Rx control: ");
-    Serial.println(rx_ctrl);
     uint8_t tx_ctrl = (instruction & 0b11100000) >> 5;
-    Serial.print("CPU> Tx control: ");
-    Serial.println(tx_ctrl);
     uint8_t* transmiter;
     uint8_t* receiver;
     uint8_t alu_result = 0;
@@ -86,7 +100,6 @@ ucycle_status bus_cpu::process_microcycle(){
             break;
         case 5: 
             if(!user_input_ready){
-                Serial.println("CPU> Mcycle need input");
                 return NEED_INPUT;
             }
             transmiter = &user_input;
@@ -213,7 +226,7 @@ void bus_cpu::continue_execution(){
 }
 
 void bus_cpu::take_user_input(uint8_t input){
-    user_input = input;
+    user_input = input & 0b00001111;
     user_input_ready = true;
     internal_state = EXECUTION;
     Serial.print("CPU> User input: ");
@@ -240,10 +253,6 @@ bool bus_cpu::set_Rp(const uint8_t address, const uint8_t value){
         return false;
     }
     Rp[address] = value;
-    Serial.print("CPU> Rp[");
-    Serial.print(address);
-    Serial.print("] = ");
-    Serial.println(value);
     return true;
 }
 
@@ -290,24 +299,24 @@ void bus_cpu::set_execution_speed(const uint32_t speed){
 
  }
  void bus_cpu::print_registers(){
-    Serial.print("Ra: ");
+    Serial.print("CPU>Ra: ");
     Serial.println(Ra);
-    Serial.print("Rb: ");
+    Serial.print("CPU>Rb: ");
     Serial.println(Rb);
-    Serial.print("Rc: ");
+    Serial.print("CPU>Rc: ");
     Serial.println(Rc);
-    Serial.print("Rwy: ");
+    Serial.print("CPU>Rwy: ");
     Serial.println(Rwy);
-    Serial.print("R1: ");
+    Serial.print("CPU>R1: ");
     Serial.println(R1);
-    Serial.print("R2: ");
+    Serial.print("CPU>R2: ");
     Serial.println(R2);
-    Serial.print("Ri: ");
+    Serial.print("CPU>Ri: ");
     Serial.println(Ri);
-    Serial.print("Gs: ");
+    Serial.print("CPU>Gs: ");
     Serial.println(Gs);
-    Serial.print("Rp address: ");
+    Serial.print("CPU>Rp address: ");
     Serial.println(Rp_address);
-    Serial.print("User input: ");
+    Serial.print("CPU>User input: ");
     Serial.println(user_input);
  }

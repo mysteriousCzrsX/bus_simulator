@@ -32,8 +32,6 @@ void alu::clear_opcode(){
 
 uint8_t alu::calculate(const uint8_t operand1, const uint8_t operand2){
     uint8_t calculation_result = 0;
-    Serial.println("ALU> Actual opcode");
-    Serial.println(opcode);
    if((opcode & 0b00010000)){
     //logic operations
         switch(opcode & 0b00001111){
@@ -148,5 +146,5 @@ uint8_t alu::calculate(const uint8_t operand1, const uint8_t operand2){
                 break;
         }
    }
-   return calculation_result;
+   return calculation_result & 0b00001111;
 }
