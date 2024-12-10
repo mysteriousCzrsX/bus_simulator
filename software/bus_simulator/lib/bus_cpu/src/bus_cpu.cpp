@@ -107,16 +107,18 @@ ucycle_status bus_cpu::process_microcycle(){
     return SUCCESS;
 }
 
-bus_cpu_state bus_cpu::schedule_execution(const execution_type type){
-    ucycle_status status;
+bus_cpu_state bus_cpu::schedule_execution(){
+    ucycle_status ucycle_return;
     if (internal_state == EXECUTION){
-        status = process_microcycle();
-        switch (status){
+        ucycle_return = process_microcycle();
+        switch (ucycle_return){
             case SUCCESS:
+            Serial.println("CPU> Micro cycle done");
                 switch (type){
                     case CYCLE:
                         if(Gs == 0){
                             internal_state = CYCLE_DONE;
+                            Serial.println("CPU> Cycle done");
                         }
                         break;
                     case MICRO_CYCLE:
@@ -132,11 +134,13 @@ bus_cpu_state bus_cpu::schedule_execution(const execution_type type){
                         break;
                 }
                 if (Rp_address > 15){
+                    Serial.println("CPU> Execution done");
                     internal_state = DONE;
                 }
                 break;
             case NEED_INPUT:
                 internal_state = USER_INPUT;
+                Serial.println("CPU> Need user input");
                 break;
             case ERROR:
                 internal_state = EXCEPTION;
@@ -151,18 +155,14 @@ bus_cpu_state bus_cpu::schedule_execution(const execution_type type){
 
 void bus_cpu::start_execution(){
     if(internal_state == READY){
+        Serial.println("CPU> Starting execution");
         internal_state = EXECUTION;
     }
 }
 
-void bus_cpu::pause_execution(){
-    if(internal_state == EXECUTION){
-        internal_state = PAUSED;
-    }
-}
-
 void bus_cpu::continue_execution(){
-    if(internal_state == PAUSED || internal_state == CYCLE_DONE){
+    if(internal_state == CYCLE_DONE){
+        Serial.println("CPU> Continue execution");
         internal_state = EXECUTION;
     }
 }
@@ -171,6 +171,8 @@ void bus_cpu::take_user_input(uint8_t input){
     user_input = input;
     user_input_ready = true;
     internal_state = EXECUTION;
+    Serial.print("CPU> User input: ");
+    Serial.println(user_input);
 }
 
 bool bus_cpu::set_RAM(const uint8_t address, const uint8_t value){
@@ -213,5 +215,13 @@ void bus_cpu::get_register_values(bus_cpu_status &registers){
 }
 
 inline uint8_t bus_cpu::calculate_address(){
-    return (Ri << 2) | Gs;
+    uint8_t addr = (Ri << 2) | Gs;
+    if(addr > RAM_SIZE){
+        addr = RAM_SIZE;
+    }
+    return addr;
+}
+
+void bus_cpu::set_execution_type(const execution_type _type){
+    type = _type;
 }

@@ -79,17 +79,9 @@ MENU(program_edit,"Zapis programu",doNothing,noEvent,noStyle
 );
 
 result end_execution_commit(eventMask e,navNode& nav, prompt &item) {
-  //stop cpu
   cpu.reset();
   return quit;
 }
-
-bool execution_running = false;
-
-TOGGLE(execution_running,execState,"Stan: ",doNothing,noEvent,wrapStyle
-  ,VALUE("Pauza",false,doNothing,noEvent)
-  ,VALUE("Praca",true,doNothing,noEvent)
-);
 
 registers displayed_register = Ra;
 
@@ -99,25 +91,41 @@ TOGGLE(displayed_register,dispReg,"Rejestr: ",doNothing,noEvent,wrapStyle
   ,VALUE("Rc",registers::Rc,doNothing,noEvent)
 );
 
-MENU(program_mode,"Program",doNothing,noEvent,noStyle
-  ,SUBMENU(execState)
+result start_program(eventMask e,navNode& nav, prompt &item) {
+  cpu.set_execution_type(execution_type::PROGRAM);
+  cpu.start_execution();
+  return proceed;
+}
+
+MENU(program_mode,"Program",start_program,enterEvent,noStyle
   ,SUBMENU(dispReg)
   ,OP("Zakoncz",end_execution_commit,enterEvent)
 );
 
 result continue_execution_commit(eventMask e,navNode& nav, prompt &item) {
-  //stop cpu
   cpu.continue_execution();
   return proceed;
 }
 
-MENU(cycle_mode,"Cykl",doNothing,noEvent,noStyle
+result start_cycle(eventMask e,navNode& nav, prompt &item) {
+  cpu.set_execution_type(execution_type::CYCLE);
+  cpu.start_execution();
+  return proceed;
+}
+
+MENU(cycle_mode,"Cykl",start_cycle,enterEvent,noStyle
   ,OP("Kontynuuj",continue_execution_commit,enterEvent)
   ,SUBMENU(dispReg)
   ,OP("Zakoncz",end_execution_commit,enterEvent)
 );
 
-MENU(ucycle_mode,"Mikrocykl",doNothing,noEvent,noStyle
+result start_micro_cycle(eventMask e,navNode& nav, prompt &item) {
+  cpu.set_execution_type(execution_type::MICRO_CYCLE);
+  cpu.start_execution();
+  return proceed;
+}
+
+MENU(ucycle_mode,"Mikrocykl",start_micro_cycle,enterEvent,noStyle
   ,OP("Kontynuuj",continue_execution_commit,enterEvent)
   ,SUBMENU(dispReg)
   ,OP("Zakoncz",end_execution_commit,enterEvent)
@@ -182,7 +190,7 @@ void setup() {
 void loop() {
   static bus_cpu_state cpu_state;
   nav.poll();
-  cpu_state = cpu.schedule_execution(execution_type::CYCLE);
+  cpu_state = cpu.schedule_execution();
   switch (cpu_state) {
     case bus_cpu_state::READY:
       break;
@@ -194,8 +202,6 @@ void loop() {
       break;
     case bus_cpu_state::USER_INPUT:
       nav.idleOn(user_input);
-      break;
-    case bus_cpu_state::PAUSED:
       break;
     case bus_cpu_state::EXCEPTION:
       Serial.println("Exception occured");

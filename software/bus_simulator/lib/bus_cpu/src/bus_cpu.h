@@ -4,6 +4,7 @@
 #include<stdint.h>
 #include<array>
 #include "alu.h"
+#include <Arduino.h>
 
 #define RAM_SIZE 64
 #define PROGRAM_SIZE RAM_SIZE / 4
@@ -24,8 +25,7 @@ enum bus_cpu_state{
     CYCLE_DONE = 2,
     DONE = 3,
     USER_INPUT = 4,
-    PAUSED = 5,
-    EXCEPTION = 6
+    EXCEPTION = 5
 };
 
 enum ucycle_status{
@@ -62,6 +62,7 @@ private:
     alu ALU;
 
     bus_cpu_state internal_state;
+    execution_type type;
 
     ucycle_status process_microcycle();
     inline uint8_t calculate_address();
@@ -71,16 +72,16 @@ public:
     void reset();
     void clear();
     void start_execution();
-    void pause_execution();
     void continue_execution();
     void take_user_input(uint8_t input);
 
-    bus_cpu_state schedule_execution(const execution_type type);
+    bus_cpu_state schedule_execution();
     bool set_RAM(const uint8_t address, const uint8_t value);
     uint8_t get_RAM(const uint8_t address);
     bool set_Rp(const uint8_t address, const uint8_t value);
     uint8_t get_Rp(const uint8_t address);
     void get_register_values(bus_cpu_status &registers);
+    void set_execution_type(const execution_type _type);
 };
 
 #endif
