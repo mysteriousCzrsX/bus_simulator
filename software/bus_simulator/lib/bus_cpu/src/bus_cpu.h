@@ -67,6 +67,7 @@ private:
 
     ucycle_status process_microcycle();
     inline uint8_t calculate_address();
+    void print_registers();
 public:
     bus_cpu();
     ~bus_cpu();
@@ -75,6 +76,7 @@ public:
     void start_execution();
     void continue_execution();
     void take_user_input(uint8_t input);
+
 
     bus_cpu_state schedule_execution();
     bool set_RAM(const uint8_t address, const uint8_t value);

@@ -1,11 +1,14 @@
 #include "bus_cpu.h"
+#define CPUU_DEMO
 
 bus_cpu::bus_cpu()
 :ALU(){
     clear();
+    #ifdef CPUU_DEMO
     RAM[0] = 164;
     RAM[1] = 40;
     RAM[2] = 44;
+    #endif
 }
 
 bus_cpu::~bus_cpu(){
@@ -42,6 +45,7 @@ ucycle_status bus_cpu::process_microcycle(){
     uint8_t alu_opcode = instruction & 0b00000011;
     uint8_t rx_ctrl = (instruction & 0b00011100) >> 2;
     Serial.print("CPU> Rx control: ");
+    Serial.println(rx_ctrl);
     uint8_t tx_ctrl = (instruction & 0b11100000) >> 5;
     Serial.print("CPU> Tx control: ");
     Serial.println(tx_ctrl);
@@ -116,6 +120,7 @@ ucycle_status bus_cpu::process_microcycle(){
         Rp_address++;
         Gs = 0;
     }
+    print_registers();
     return SUCCESS;
 }
 
@@ -262,4 +267,26 @@ void bus_cpu::set_execution_speed(const uint32_t speed){
         execution_speed = speed;
     }
 
+ }
+ void bus_cpu::print_registers(){
+    Serial.print("Ra: ");
+    Serial.println(Ra);
+    Serial.print("Rb: ");
+    Serial.println(Rb);
+    Serial.print("Rc: ");
+    Serial.println(Rc);
+    Serial.print("Rwy: ");
+    Serial.println(Rwy);
+    Serial.print("R1: ");
+    Serial.println(R1);
+    Serial.print("R2: ");
+    Serial.println(R2);
+    Serial.print("Ri: ");
+    Serial.println(Ri);
+    Serial.print("Gs: ");
+    Serial.println(Gs);
+    Serial.print("Rp address: ");
+    Serial.println(Rp_address);
+    Serial.print("User input: ");
+    Serial.println(user_input);
  }

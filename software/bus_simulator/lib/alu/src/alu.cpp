@@ -32,16 +32,16 @@ uint8_t alu::calculate(const uint8_t operand1, const uint8_t operand2){
                 calculation_result = operand1 ^ operand2;
                 break;
             case 5:
-                calculation_result = 0 ;//tba
+                calculation_result = ~(operand1 == operand2);
                 break;
             case 6:
-                calculation_result = 0; //tba
+                calculation_result = operand1 <= operand2;
                 break;
             case 7:
                 calculation_result = operand1 | operand2;
                 break;
             case 8:
-                calculation_result = 0; //tba
+                calculation_result = ~(operand1 <= operand2);
                 break;
             case 9:
                 calculation_result = ~(operand1 & operand2); //duplication ??
@@ -59,7 +59,7 @@ uint8_t alu::calculate(const uint8_t operand1, const uint8_t operand2){
                 calculation_result = ~(operand1 | operand2);
                 break;
             case 14:
-                calculation_result = 0; //tba
+                calculation_result = operand1 == operand2;
                 break;
             case 15:
                 calculation_result = ~(operand1 ^ operand2); // duplication ??
