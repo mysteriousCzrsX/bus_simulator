@@ -138,18 +138,24 @@ MENU(start_execution,"Praca",doNothing,noEvent,noStyle
   ,EXIT("<Wroc")
 );
 
-uint8_t execution_speed = 50;
+uint8_t execution_clock = 10;
 
 result reset_system_commit(eventMask e,navNode& nav, prompt &item) {
   cpu.clear();
   return proceed;
 }
 
+result set_exec_speed_commit(eventMask e,navNode& nav, prompt &item) {
+  cpu.set_execution_speed(1000/execution_clock);
+  return proceed;
+}
+
+
 MENU(busMainMenu,"Szyna danych",doNothing,noEvent,wrapStyle
   ,SUBMENU(ram_edit)
   ,SUBMENU(program_edit)
   ,SUBMENU(start_execution)
-  ,FIELD(execution_speed,"Predkosc pracy","%",0,100,10,0,doNothing,noEvent,wrapStyle)
+  ,FIELD(execution_clock,"Zegar","Hz",1,20,1,0,set_exec_speed_commit,anyEvent,wrapStyle)
   ,OP("Reset",reset_system_commit,enterEvent)
 );
 
@@ -210,5 +216,5 @@ void loop() {
   io.set_displayed_register(displayed_register);
   cpu.get_register_values(cpu_status);
   io.render_led(cpu_status);
-  delay(100);
+  delay(50);
 }

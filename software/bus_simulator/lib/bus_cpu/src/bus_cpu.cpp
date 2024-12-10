@@ -3,6 +3,9 @@
 bus_cpu::bus_cpu()
 :ALU(){
     clear();
+    RAM[0] = 164;
+    RAM[1] = 40;
+    RAM[2] = 44;
 }
 
 bus_cpu::~bus_cpu(){
@@ -20,6 +23,7 @@ void bus_cpu::reset(){
     Gs = 0;
     Rp_address = 0;
     internal_state = READY;
+    type = CYCLE;
 }
 
 void bus_cpu::clear(){
@@ -30,10 +34,17 @@ void bus_cpu::clear(){
 
 ucycle_status bus_cpu::process_microcycle(){
     uint8_t address = calculate_address(); //idk if this works 
+    Serial.print("CPU> RAM Address: ");
+    Serial.println(address);
     uint8_t instruction = RAM[address]; 
+    Serial.print("CPU> Instruction: ");
+    Serial.println(instruction);
     uint8_t alu_opcode = instruction & 0b00000011;
     uint8_t rx_ctrl = (instruction & 0b00011100) >> 2;
-    uint8_t tx_ctrl = (instruction & 0b11100000) >> 4;
+    Serial.print("CPU> Rx control: ");
+    uint8_t tx_ctrl = (instruction & 0b11100000) >> 5;
+    Serial.print("CPU> Tx control: ");
+    Serial.println(tx_ctrl);
     uint8_t* transmiter;
     uint8_t* receiver;
     uint8_t alu_result = 0;
@@ -56,6 +67,7 @@ ucycle_status bus_cpu::process_microcycle(){
             break;
         case 5: 
             if(!user_input_ready){
+                Serial.println("CPU> Mcycle need input");
                 return NEED_INPUT;
             }
             transmiter = &user_input;
@@ -109,11 +121,22 @@ ucycle_status bus_cpu::process_microcycle(){
 
 bus_cpu_state bus_cpu::schedule_execution(){
     ucycle_status ucycle_return;
+    static uint64_t last_succesful_ucycle = 0;
+    
     if (internal_state == EXECUTION){
-        ucycle_return = process_microcycle();
+        uint64_t time_difference = millis() - last_succesful_ucycle;
+        Serial.print("CPU> Time difference: ");
+        Serial.println(time_difference);
+        if(time_difference > execution_speed || type == CYCLE || type == MICRO_CYCLE){
+            ucycle_return = process_microcycle();
+        }
+        else{
+            return EXECUTION;
+        }
         switch (ucycle_return){
             case SUCCESS:
             Serial.println("CPU> Micro cycle done");
+            last_succesful_ucycle = millis();
                 switch (type){
                     case CYCLE:
                         if(Gs == 0){
@@ -225,3 +248,18 @@ inline uint8_t bus_cpu::calculate_address(){
 void bus_cpu::set_execution_type(const execution_type _type){
     type = _type;
 }
+
+void bus_cpu::set_execution_speed(const uint32_t speed){
+    if(speed  > 1000){
+        execution_speed = 1000;
+    }
+    else if(speed < 50){
+        execution_speed = 50;
+    }
+    else{
+        Serial.print("CPU> Execution speed set to: ");
+        Serial.println(speed);
+        execution_speed = speed;
+    }
+
+ }

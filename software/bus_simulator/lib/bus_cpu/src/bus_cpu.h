@@ -63,6 +63,7 @@ private:
 
     bus_cpu_state internal_state;
     execution_type type;
+    uint32_t execution_speed = 100; //execution speed in %
 
     ucycle_status process_microcycle();
     inline uint8_t calculate_address();
@@ -82,6 +83,7 @@ public:
     uint8_t get_Rp(const uint8_t address);
     void get_register_values(bus_cpu_status &registers);
     void set_execution_type(const execution_type _type);
+    void set_execution_speed(const uint32_t speed);
 };
 
 #endif
