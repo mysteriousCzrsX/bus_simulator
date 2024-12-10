@@ -74,7 +74,7 @@ result display_program(eventMask e,navNode& nav, prompt &item) {
 MENU(program_edit,"Zapis programu",doNothing,noEvent,noStyle
   ,FIELD(program_address_edit,"Adres","",0,15,1,0,display_program,anyEvent,wrapStyle)
   ,OP("Zapisz",edit_programm_commit,enterEvent)
-  ,FIELD(ram_value,"Wartosc","",0,255,0,0,doNothing,noEvent,noStyle)
+  ,FIELD(program_value,"Wartosc","",0,255,0,0,doNothing,noEvent,noStyle)
   ,EXIT("<Wroc")
 );
 
@@ -152,9 +152,9 @@ result set_exec_speed_commit(eventMask e,navNode& nav, prompt &item) {
 
 
 MENU(busMainMenu,"Szyna danych",doNothing,noEvent,wrapStyle
+  ,SUBMENU(start_execution)
   ,SUBMENU(ram_edit)
   ,SUBMENU(program_edit)
-  ,SUBMENU(start_execution)
   ,FIELD(execution_clock,"Zegar","Hz",1,20,1,0,set_exec_speed_commit,anyEvent,wrapStyle)
   ,OP("Reset",reset_system_commit,enterEvent)
 );
@@ -183,7 +183,6 @@ void setup() {
   Wire.setSDA(LCD_SDA);
   Wire.begin();
   lcd.begin(20, 4);
-  busMainMenu[1].enabled=disabledStatus;
   nav.showTitle=false;
   lcd.setBacklight(255);
   lcd.home();

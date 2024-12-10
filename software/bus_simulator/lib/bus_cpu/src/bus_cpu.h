@@ -50,6 +50,7 @@ private:
     uint8_t R1;
     uint8_t R2;
     uint8_t Ri; //instruction pointer
+    uint8_t Ri_tmp;
     uint8_t Gs;
 
     uint8_t Rp_address;

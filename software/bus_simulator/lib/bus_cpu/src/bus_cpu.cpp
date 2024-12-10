@@ -5,9 +5,23 @@ bus_cpu::bus_cpu()
 :ALU(){
     clear();
     #ifdef CPUU_DEMO
-    RAM[0] = 164;
-    RAM[1] = 40;
-    RAM[2] = 44;
+    RAM[0] = 0b10100100;
+    RAM[1] = 0b00101000;
+    RAM[2] = 0b00101000;;
+    RAM[3] = 0;
+
+    RAM[4] = 0;
+    RAM[5] = 0b00110010;
+    RAM[6] = 0b00110101;
+    RAM[7] = 0b10000100;
+
+    RAM[8] = 0;
+    RAM[9] = 0b00110001;
+    RAM[10] = 0b01010101;
+    RAM[11] = 0b10011000;
+    for(int i = 0; i < 16; i++){
+        Rp[i] = i+1;
+    }
     #endif
 }
 
@@ -23,6 +37,7 @@ void bus_cpu::reset(){
     R1 = 0;
     R2 = 0;
     Ri = 0;
+    Ri_tmp = 0;
     Gs = 0;
     Rp_address = 0;
     internal_state = READY;
@@ -84,7 +99,7 @@ ucycle_status bus_cpu::process_microcycle(){
 
     switch(rx_ctrl){
         case 0:
-            receiver = &Ri;
+            receiver = &Ri_tmp;
             ALU.set_opcode(alu_opcode);
             break;
         case 1:
@@ -119,6 +134,8 @@ ucycle_status bus_cpu::process_microcycle(){
     if(Gs > 3){
         Rp_address++;
         Gs = 0;
+        ALU.clear_opcode();
+        Ri = Ri_tmp;
     }
     print_registers();
     return SUCCESS;
@@ -223,6 +240,10 @@ bool bus_cpu::set_Rp(const uint8_t address, const uint8_t value){
         return false;
     }
     Rp[address] = value;
+    Serial.print("CPU> Rp[");
+    Serial.print(address);
+    Serial.print("] = ");
+    Serial.println(value);
     return true;
 }
 
