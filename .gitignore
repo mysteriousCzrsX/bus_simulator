@@ -7,4 +7,16 @@
 **/*.vscode/extensions.json
 **/*.lck
 **/*.vscode/settings.json
+**/*.aux
+**/*.log
+**/*.synctex.gz
+**/*.out
+**/*.toc
+**/*.fls
+**/*.fdb_latexmk
+**/*.bcf
+**/*.run.xml
+**/*.lof
+**/*.blg
+**/*.bbl
 resources

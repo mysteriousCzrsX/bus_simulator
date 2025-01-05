@@ -1,16 +1,14 @@
 #include <Arduino.h>
-#include "config.h"
-
 #include <Wire.h>
 #include <LiquidCrystal_PCF8574.h>
-#include <menu.h>//menu macros and objects
-#include <menuIO/PCF8574Out.h>//arduino I2C LCD
-#include <menuIO/encoderIn.h>//quadrature encoder driver and fake stream
-#include <menuIO/keyIn.h>//keyboard driver and fake stream (for the encoder button)
-#include <menuIO/chainStream.h>// concatenate multiple input streams (this allows adding a button to the encoder)
-
+#include <menu.h>
+#include <menuIO/PCF8574Out.h>
+#include <menuIO/encoderIn.h>
+#include <menuIO/keyIn.h>
+#include <menuIO/chainStream.h>
 #include <bus_cpu.h>
 #include <userIO.h>
+#include "config.h"
 
 using namespace Menu;
 
@@ -20,10 +18,7 @@ bus_cpu_status cpu_status;
 
 LiquidCrystal_PCF8574 lcd(0x27);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
-// Encoder /////////////////////////////////////
-
 encoderIn<ENC_S2,ENC_S1> encoder;//simple quad encoder driver
-
 encoderInStream<ENC_S2,ENC_S1> encStream(encoder,ENC_SENSIVITY);// simple quad encoder fake Stream
 
 //a keyboard with only one key as the encoder button
@@ -32,7 +27,7 @@ keyIn<1> encButton(encBtn_map);//1 is the number of keys
 
 //input from the encoder + encoder button + serial
 menuIn* inputsList[]={&encStream,&encButton};
-chainStream<2> in(inputsList);//3 is the number of inputs
+chainStream<2> in(inputsList);//2 is the number of inputs
 
 uint8_t ram_address_edit = 0;
 uint8_t ram_value = 0;
