@@ -54,4 +54,10 @@
 \newpage
 \listoftables
 \addcontentsline{toc}{section}{Spis tabel}
+\newpage
+
+\includepdf[pages=1, scale=0.75, pagecommand={%
+  \section{Załączniki}\subsection{Załącznik nr 1: Instrukcja obsługi stanowiska}\label{zal:1}
+}]{szyna-danych.pdf}
+\includepdf[pages=2-]{szyna-danych.pdf}
 \end{document}
