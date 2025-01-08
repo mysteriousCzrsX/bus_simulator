@@ -69,7 +69,7 @@ Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika 
         \\
         Wejścia adresowe pamięci są połączone z rejestrem Rp (trzy najstarsze bity) oraz z generatorem Gs (dwa najmłodsze bity). 
         Trzy najstarsze bity wyjścia danych pamięci połączone są z wejściami adresowymi dekodera 1 natomiast kolejne trzy z wejściami 
-        adresowymi dekodera 2. Dwa najmłodsze bity wyjścia danych pamięci połączone są wejściami informacyjnymi rejestrów przesównych instrukcji ALU.
+        adresowymi dekodera 2. Dwa najmłodsze bity wyjścia danych pamięci połączone są wejściami informacyjnymi rejestrów przesuwnych instrukcji ALU.
 
         \subsubsection*{Generator GS}
         
@@ -80,7 +80,7 @@ Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika 
         \subsubsection*{Dekoder sygnałów sterujących}
         
         Dekodery sygnałów sterujących to układy konwertujące liczby binarne na kod 1 z n. Dekoder 1 wytwarza sygnały sterujące nadajnikami które
-        podawane są na wejścia sterujące przyłączaniem poszczególnych nadajników do szyny dancyh.
+        podawane są na wejścia sterujące przyłączaniem poszczególnych nadajników do szyny danych.
 
         \begin{figure}[H]
             \centering
@@ -102,8 +102,8 @@ Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika 
         \subsubsection*{Jednostka arytmetyczno logiczna ALU}
         
         Układ ten realizuje operacje arytmetyczne i logiczne na dwóch liczbach 4 bitowych zapisanych w rejestrach $R_1$ oraz $R_2$.
-        Rodzaj wykonywanej operacji określa pięciobitowe słowo $M, S_3, S_2, S_1, S_0$ które jest zapizywane w dwóch 3 bitowych rejestrach przesównych.
-        Na rysunku \ref{fig:szyna_schemat} widzimy sposób połączenia rejestrów przesównych w układzie. Na ich wejścia danych podane są 
+        Rodzaj wykonywanej operacji określa pięciobitowe słowo $M, S_3, S_2, S_1, S_0$ które jest zapisywane w dwóch 3 bitowych rejestrach przesuwnych.
+        Na rysunku \ref{fig:szyna_schemat} widzimy sposób połączenia rejestrów przesuwnych w układzie. Na ich wejścia danych podane są 
         sygnały $W_1, W_2$ z pamięci RAM. Natomiast na wejścia zegarowe podana jest suma logiczna sygnałów $C_RI, C_R1, C_R2$. Z tych zależności
         wynika, że podczas projektowania instrukcji z użyciem ALU w celu ustawienia odpowiedniego kodu operacji należy przewidzieć 
         wygenerowanie sygnałów $C_RI, C_R1, C_R2$. Na rysunku \ref{fig:kodowanie_alu} przedstawiono sposób kodowania operacji do wykonania przez ALU.
@@ -138,12 +138,106 @@ Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika 
 
     \subsubsection{Interfejs użytkownika}
 
+    Na rysunku \ref{fig:szyna_schemat} poza schematem blokowym zestawu widzimy przyciski oraz diody LED służące do sterowania zestawem i 
+    monitorowania jego pracy. 
+
+    \subsubsection*{Kontrola pracy zestawu}
+    Do sterowania pracą zestawu służą następujące przyciski:
+    \begin{itemize}
+        \item ZER. - przycisk zerowania generatora GS
+        \item START - przycisk rozpoczynający pracę zestawu
+        \item CZYTAJ - przycisk inicjujący odczyt z klawiatury dane i kontynuacje pracy zestawu
+        \item Mikrocykl, Cykl, Program - przełączniki wyboru trybu pracy zestawu
+        \item klawiatura dane - klawiatura do wprowadzania danych wejściowych na szynę danych
+    \end{itemize}
+    
+    \subsubsection*{Zapis i odczyt danych z pamięci RAM}
+    Do obsługi zapisu pamięci RAM służą przyciski:
+    \begin{itemize}
+        \item zer. - zerowanie adresu przy zapisie i odczycie pamięci RAM
+        \item zapis/praca - wybór pomiędzy zapisem danych do pamięci RAM a pracą zestawu
+        \item wpisz - zapis danych z klawiatury do RAM po jego wciśnięciu adres zwiększa się o 1
+        \item klawiatura $C_T$ - $W_2$ - przyciski do ustawiania wartości bitowej słowa wpisywanego do pamięci RAM
+    \end{itemize}
+
+    \subsubsection*{Zapis i odczyt danych z $R_P$}
+    Zapis oraz odczyt danych z rejestru odbywa się podobnie jak w przypadku pamięci RAM z użyciem odpowiednich przycisków:
+    \begin{itemize}
+        \item klawiatura dane - klawiatura do wprowadzania danych wejściowych na szynę danych
+        \item klawiatura instrukcja - klawiatura do wprowadzania wartości do rejestru $R_P$
+        \item zer. - zerowanie adresu przy zapisie i odczycie pamięci $R_P$
+        \item zapis/praca - wybór pomiędzy zapisem danych do pamięci $R_P$ a pracą zestawu
+        \item wpisz - zapis danych z klawiatury instrukcja do $R_P$ po jego wciśnięciu adres zwiększa się o 1
+    \end{itemize}
+
+    \subsubsection*{Monitorowanie pracy zestawu}
+    Na płycie czołowej zestawu znajdują się również diody LED obrazujące wartości 
+
+    \begin{itemize}
+        \item Adresu pamięci RAM
+        \item Wartości słowa w pamięci RAM
+        \item Wartości słowa w rejestrze $R_{WY}$
+        \item Wartości słowa w jednym z rejestrów $R_A, R_B, R_C$ wybieranych przyciskami
+        \item Adres rejestru $R_P$
+    \end{itemize}
+
     \subsubsection{Tryby pracy stanowiska}
+    Stanowisko posiada trzy tryby pracy:
+    \begin{itemize}
+        \item  Mikrocykl - zestaw po wciśnięciu przycisku START wykona tylko jedną instrukcję z pamięci RAM, zostanie wygenerowana 
+        tylko jedna wartość w generatorze GS. Po jej wykonaniu zestaw zatrzyma się i będzie oczekiwał na ponowne wciśnięcie przycisku START.
+        \item  Cykl - zestaw po wciśnięciu przycisku START wykona cztery kolejne instrukcje z pamięci RAM. Nastąpią cztery kolejne zmiany
+        wyjść w generatorze GS. Po wykonaniu czterech instrukcji zestaw zatrzyma się i będzie oczekiwał na ponowne wciśnięcie przycisku START.
+        \item Program - po wciśnięciu przycisku START zestaw poda na wyjście rejestru $R_P$ kolejno osiem instrukcji które zostały
+        do niego uprzednio zapisane. Układ wygeneruje kolejne 32 stany generatora GS, zmiana wartości w rejestrze $R_P$ nastąpi co czwartą
+        wartość generatora GS.
+    \end{itemize}
 
-\subsection{Krytyczna ocena stanowiska} %mabe lepszy tytuł?
+    Niezależnie od trybu pracy zestawu automatycznie generowane są tylko wartości generatora GS. W celu wykonania kolejnych instrukcji należy 
+    manualnie załadować wartość trzech najstarszych bitów adresu pamięci kolejnej instrukcji do rejestru $R_I$. 
+    W tym celu w pierwszej instrukcji każdego bloku czterech instrukcji w pamięci RAM należy umieścić wartość 000000XX. Taka wartość instrukcji 
+    odpowiada ustawieniu rejestru $R_I$ jako odbiornika a rejestru $R_P$ jako nadajnika. W przypadku pracy w trybie Mikrocykl oraz Cykl wartość trzech
+    najstarszych bitów adresu pamięci kolejnej instrukcji należy za każdym razem manualnie wprowadzić na klawiaturze instrukcji. Natomiast w trybie
+    Program kolejne osiem wartości rejestru $R_P$ zostanie automatycznie podanych na jego wyjście.
 
-    \subsubsection{Zalety stanowiska}
 
-    \subsection{Wady stanowiska}
+\subsection{Krytyczna ocena stanowiska}
+
+    \subsubsection{Założenia funkcjonalne}
+
+    Zestaw w obecnej formie pozwala na realizacje prostych programów obrazujących działanie szyny danych w praktyce. Urządzenia podłączone do szyny
+    współpracują ze sobą w sposób przemyślany pozwalają na realizowanie prostych operacji na jednostce ALU, zapis danych do rejestrów, pobieranie
+    oraz prezentowanie danych użytkownikowi. Tryby pracy zestawu pozwalają na łatwe zaobserwowanie procesów zachodzących w zestawie podczas
+    wykonywania programu. Tryby cykl i mikrocykl ułatwiają debugowanie programów przechodząc przez każdy cykl lub mikrocykl programu.
+
+    \subsubsection{Interfejs użytkownika}
+
+    Interfejs użytkownika zestawu opiera się na przyciskach jako urządzeniach wejściowych oraz diodach LED jako urządzeniach wyjściowych. Wizualizacja
+    stanu poszczególnych rejestrów oraz bitów za pomocą diod LED jest czytelna i intuicyjna. W połączeniu ze schematem blokowym na płycie pozwala
+    to w łatwy sposób zrozumieć jakie działania zestaw wykonuje w danym momencie. Możliwość podglądu adresu pamięci RAM oraz słowa 
+    pod nim zapisanego ułatwia znajdywanie błędów w programach uruchamianych na zestawie.
+    \\
+    Wprowadzanie danych do zestawu (wartości pamięci RAM, rejestru $R_P$ oraz danych na szynę) odbywa się za pomocą klawiatur. Jest to kilka przycisków
+    gdzie każdy przycisk odpowiada jednemu bitowi wprowadzanego słowa. Wciśnięty przycisk odpowiada wartości 1 a wyciśnięty wartości 0.
+    Wprowadzanie wartości danych binarnych w ten sposób jest intuicyjne i szybkie.
+    \\
+    Pozostałe przyciski zestawu służą do kontroli jego pracy oraz kontroli procesów zapisu i odczytu wartości z pamięci RAM oraz rejestru $R_P$.
+    Jest to sposób sprawdzony i stosunkowo intuicyjny. Głównym ograniczeniem tego podejścia jest trudność w dokonaniu zmian w interfejsie gdyż
+    jego elementy są stałymi elementami płyty czołowej zestawu. Kolejnym ograniczeniem tego podejścia jest ograniczona możliwość sposobów zapisu oraz 
+    odczytu pamięci RAM oraz rejestru $R_P$. Zapis oraz odczyt musi się odbywać w sposób sekwencyjny co znacząco wydłuża proces w przypadku gdy 
+    zachodzi potrzeba zmiany lub odczytu wartości znajdujących się w dalszych regionach pamięci lub rejestru.
+
+    \subsubsection{Platforma sprzętowa}
+
+    W obecnej formie zestaw jest oparty o dwa mikrokontrolery Atmega 8 oraz Atmega 32. Odpowiadają one za symulację pracy komponentów składowych zestawu
+    oraz obsługę interfejsu użytkownika. Emulacja komponentów zestawu programowo niesie za sobą szereg zalet: możliwość łatwej modyfikacji
+    działania zestawu, mniejszy pobór mocy niż w przypadku dedykowanych układów scalonych. Podejście emulacyjne jest po części wymuszone 
+    ograniczoną dostępnością w handlu dedykowanych układów scalonych takich jak jednostki ALU ze względu na ich znikomą popularność nowych projektach.
+    \\
+    Dużym problemem w przypadku tego zestawu jest to, że kod źródłowy programów pracujących na mikrokontrolerach w zestawie nie jest dostępny. 
+    W przypadku potrzeby naprawy błędów w oprogramowaniu bądź chęci rozwinięcia funkcjonalności zestawu konieczne byłoby napisanie
+    całego oprogramowania od nowa. Wiązałoby się to z dużym nakładem pracy. Architektura oparta o dwa osobne układy na 
+    których pracują różne programy również nie jest optymalna. Podział zadań na dwa mikrokontrolery komplikuje proces pisania oprogramowania oraz
+    naprawy potencjalnych błędów.
 
 \end{document}
