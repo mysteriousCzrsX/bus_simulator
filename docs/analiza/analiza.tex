@@ -31,14 +31,14 @@ Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika 
     \subsubsection{Opis stanowiska}
         Zestaw laboratoryjny modeluje system komunikacji oparty na 4 bitowej szynie danych. W skład zestawu wchodzą urządzenia nadawcze i odbiorcze
         podłączone do szyny danych, logika sterująca procesem wymiany danych oraz elementy interfejsu użytkownika. Na rysunku \ref{fig:szyna_schemat} 
-        możemy zobaczyć płytę czołową zestawu która przedstawia jego schemat blokowy oraz interfejs użytkownika. 
-        \\
+        można zobaczyć płytę czołową zestawu która przedstawia jego schemat blokowy oraz interfejs użytkownika. 
+        \par
         W przypadku tego stanowiska działanie wspomnianych urządzeń jest emulowane na dwóch mikrokontrolerach. W dalszej części rozdziału
         działanie zestawu zostanie opisane tak jakby było to urządzenie zbudowane z podzespołów przedstawionych na jego płycie czołowej.
 
         \begin{figure}[H]
             \centering
-            \includegraphics[width=\linewidth]{szyna_schemat.jpg}
+            \includegraphics[width=\linewidth]{szyna_schemat.png}
             \caption{Płyta czołowa zestawu}
             \label{fig:szyna_schemat}
         \end{figure}
@@ -48,13 +48,15 @@ Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika 
         \subsubsection*{Pamięć RAM}
 
         Pamięć ram w zestawie jest zorganizowana jako 32 słowa po 8 bitów.
-        
-        \begin{figure}[H]
+        \begin{table}[ht]
             \centering
-            \includegraphics[width=\linewidth]{ram_symbol.png}
+            \begin{tabular}{|ccc|ccc|cc|}
+                \hline
+                $C_T$ & $B_T$ & $A_T$ & $C_C$ & $B_C$ & $A_C$ & $W_1$ & $W_2$ \\ \hline
+            \end{tabular}
             \caption{Symbole przypisane  poszczególnym bitom słowa w pamięci RAM}
-            \label{fig:ram_symbol}
-        \end{figure}
+            \label{tab:ram_symbol}
+        \end{table}
         
         Zawartość słów w pamięci RAM kontroluję pracę zestawu:
 
@@ -64,9 +66,9 @@ Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika 
             \item bity $W_1, W_2$ - wybór operacji ALU
         \end{itemize}
 
-        Można więc powiedzieć że pamięć RAM zawiera instrukcje pracy zestawu. W celu wykonania kolejnych instrukcji należy zwiększyć o 1
+        Można zauważyć, że pamięć RAM zawiera instrukcje pracy zestawu. W celu wykonania kolejnych instrukcji należy zwiększyć o 1
         obecny adres pamięci. Wykonanie jednej instrukcji z pamięci RAM nazywamy mikrocyklem.
-        \\
+        \par
         Wejścia adresowe pamięci są połączone z rejestrem Rp (trzy najstarsze bity) oraz z generatorem Gs (dwa najmłodsze bity). 
         Trzy najstarsze bity wyjścia danych pamięci połączone są z wejściami adresowymi dekodera 1 natomiast kolejne trzy z wejściami 
         adresowymi dekodera 2. Dwa najmłodsze bity wyjścia danych pamięci połączone są wejściami informacyjnymi rejestrów przesuwnych instrukcji ALU.
@@ -82,31 +84,54 @@ Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika 
         Dekodery sygnałów sterujących to układy konwertujące liczby binarne na kod 1 z n. Dekoder 1 wytwarza sygnały sterujące nadajnikami które
         podawane są na wejścia sterujące przyłączaniem poszczególnych nadajników do szyny danych.
 
-        \begin{figure}[H]
+        \begin{table}[ht]
             \centering
-            \includegraphics[width=\linewidth]{nadajniki.png}
+            \[
+            \begin{array}{|ccc|cccccc|}
+            \hline
+            C_T & B_T & A_T & T_I & T_A & T_B & T_C & T_{ALU} & T_{WE} \\ \hline
+            0   & 0   & 0   & 1   & 0   & 0   & 0   & 0       & 0     \\ \hline
+            0   & 0   & 1   & 0   & 1   & 0   & 0   & 0       & 0     \\ \hline
+            0   & 1   & 0   & 0   & 0   & 1   & 0   & 0       & 0     \\ \hline
+            0   & 1   & 1   & 0   & 0   & 0   & 1   & 0       & 0     \\ \hline
+            1   & 0   & 0   & 0   & 0   & 0   & 0   & 1       & 0     \\ \hline
+            1   & 0   & 1   & 0   & 0   & 0   & 0   & 0       & 1     \\ \hline
+            \end{array}
+            \]
             \caption{Tablica prawdy dla dekodera 1}
-            \label{fig:nadajniki}
-        \end{figure}
+            \label{tab:nadajniki}
+        \end{table}
 
         Dekoder 2 działa analogicznie do dekodera 1 ale wytwarza sygnały sterujące odbiornikami. Sygnały generowane przez dekoder 1 podawane
         są na wejścia zapisu poszczególnych odbiorników.
 
-        \begin{figure}[H]
+        \begin{table}[ht]
             \centering
-            \includegraphics[width=\linewidth]{odbiorniki.png}
+            \[
+            \begin{array}{|ccc|ccccccc|}
+            \hline
+            C_C & B_C & A_C & C_{RI} & C_A & C_B & C_C & C_{R1} & C_{R2} & C_{WY} \\ \hline
+            0   & 0   & 0   & 1      & 0   & 0   & 0   & 0      & 0      & 0      \\ \hline
+            0   & 0   & 1   & 0      & 1   & 0   & 0   & 0      & 0      & 0      \\ \hline
+            0   & 1   & 0   & 0      & 0   & 1   & 0   & 0      & 0      & 0      \\ \hline
+            0   & 1   & 1   & 0      & 0   & 0   & 1   & 0      & 0      & 0      \\ \hline
+            1   & 0   & 0   & 0      & 0   & 0   & 0   & 1      & 0      & 0      \\ \hline
+            1   & 0   & 1   & 0      & 0   & 0   & 0   & 0      & 1      & 0      \\ \hline
+            1   & 1   & 0   & 0      & 0   & 0   & 0   & 0      & 0      & 1      \\ \hline
+            \end{array}
+            \]
             \caption{Tablica prawdy dla dekodera 2}
-            \label{fig:odbiorniki}
-        \end{figure}
+            \label{tab:odbiorniki}
+        \end{table}
 
         \subsubsection*{Jednostka arytmetyczno logiczna ALU}
         
         Układ ten realizuje operacje arytmetyczne i logiczne na dwóch liczbach 4 bitowych zapisanych w rejestrach $R_1$ oraz $R_2$.
         Rodzaj wykonywanej operacji określa pięciobitowe słowo $M, S_3, S_2, S_1, S_0$ które jest zapisywane w dwóch 3 bitowych rejestrach przesuwnych.
-        Na rysunku \ref{fig:szyna_schemat} widzimy sposób połączenia rejestrów przesuwnych w układzie. Na ich wejścia danych podane są 
-        sygnały $W_1, W_2$ z pamięci RAM. Natomiast na wejścia zegarowe podana jest suma logiczna sygnałów $C_RI, C_R1, C_R2$. Z tych zależności
+        Na rysunku \ref{fig:szyna_schemat} pokazano sposób połączenia rejestrów przesuwnych w układzie. Na ich wejścia danych podane są 
+        sygnały $W_1, W_2$ z pamięci RAM. Natomiast na wejścia zegarowe podana jest suma logiczna sygnałów $C_{RI}, C_{R1}, C_{R2}$. Z tych zależności
         wynika, że podczas projektowania instrukcji z użyciem ALU w celu ustawienia odpowiedniego kodu operacji należy przewidzieć 
-        wygenerowanie sygnałów $C_RI, C_R1, C_R2$. Na rysunku \ref{fig:kodowanie_alu} przedstawiono sposób kodowania operacji do wykonania przez ALU.
+        wygenerowanie sygnałów $C_{RI}, C_{R1}, C_{R2}$. Na rysunku \ref{fig:kodowanie_alu} przedstawiono sposób kodowania operacji do wykonania przez ALU.
 
         \begin{figure}[H]
             \centering
@@ -129,7 +154,7 @@ Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika 
         \begin{itemize}
             \item $R_A, R_B, R_C$ - są to rejestry przeznaczone do wykorzystania przez użytkownika, 
             mogą one zarówno odbierać jak i nadawać dane na szynę
-            \item $R_1 R_2$ - przechowują argumenty operacji ALU, mogą tylko odbierać dane z szyny
+            \item $R_1, R_2$ - przechowują argumenty operacji ALU, mogą tylko odbierać dane z szyny
             \item $R_{wy}$ - służy do prezentacji wyników operacji wykonywanych przez zestaw laboratoryjny, może tylko odbierać dane z szyny
             \item $R_I$ - przechowuje trzy najstarsze bity adresu pamięci, może tylko odbierać dane z szyny
             \item $R_p$ - to zespół ośmiu rejestrów przeznaczonych do przechowywania adresów pamięci RAM pod którymi znajdują
@@ -216,11 +241,11 @@ Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika 
     stanu poszczególnych rejestrów oraz bitów za pomocą diod LED jest czytelna i intuicyjna. W połączeniu ze schematem blokowym na płycie pozwala
     to w łatwy sposób zrozumieć jakie działania zestaw wykonuje w danym momencie. Możliwość podglądu adresu pamięci RAM oraz słowa 
     pod nim zapisanego ułatwia znajdywanie błędów w programach uruchamianych na zestawie.
-    \\
+    \par
     Wprowadzanie danych do zestawu (wartości pamięci RAM, rejestru $R_P$ oraz danych na szynę) odbywa się za pomocą klawiatur. Jest to kilka przycisków
     gdzie każdy przycisk odpowiada jednemu bitowi wprowadzanego słowa. Wciśnięty przycisk odpowiada wartości 1 a wyciśnięty wartości 0.
     Wprowadzanie wartości danych binarnych w ten sposób jest intuicyjne i szybkie.
-    \\
+    \par
     Pozostałe przyciski zestawu służą do kontroli jego pracy oraz kontroli procesów zapisu i odczytu wartości z pamięci RAM oraz rejestru $R_P$.
     Jest to sposób sprawdzony i stosunkowo intuicyjny. Głównym ograniczeniem tego podejścia jest trudność w dokonaniu zmian w interfejsie gdyż
     jego elementy są stałymi elementami płyty czołowej zestawu. Kolejnym ograniczeniem tego podejścia jest ograniczona możliwość sposobów zapisu oraz 
@@ -233,10 +258,10 @@ Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika 
     oraz obsługę interfejsu użytkownika. Emulacja komponentów zestawu programowo niesie za sobą szereg zalet: możliwość łatwej modyfikacji
     działania zestawu, mniejszy pobór mocy niż w przypadku dedykowanych układów scalonych. Podejście emulacyjne jest po części wymuszone 
     ograniczoną dostępnością w handlu dedykowanych układów scalonych takich jak jednostki ALU ze względu na ich znikomą popularność nowych projektach.
-    \\
+    \par
     Dużym problemem w przypadku tego zestawu jest to, że kod źródłowy programów pracujących na mikrokontrolerach w zestawie nie jest dostępny. 
     W przypadku potrzeby naprawy błędów w oprogramowaniu bądź chęci rozwinięcia funkcjonalności zestawu konieczne byłoby napisanie
-    całego oprogramowania od nowa. Wiązałoby się to z dużym nakładem pracy. Architektura oparta o dwa osobne układy na 
+    całego oprogramowania od nowa, co wiązałoby się z dużym nakładem pracy. Architektura oparta o dwa osobne układy na 
     których pracują różne programy również nie jest optymalna. Podział zadań na dwa mikrokontrolery komplikuje proces pisania oprogramowania oraz
     naprawy potencjalnych błędów.
 
