@@ -30,11 +30,16 @@ Elektronika cyfrowa obecna jest w prawie każdym nowoczesnym urządzeniu. Jest t
 która umożliwia rozwój nowoczesnych technologii które leżą u podstaw współczesnego społeczeństwa. W procesie projektowania układów cyfrowych
 zawsze zachodzi potrzeba wymiany danych pomiędzy różnymi podzespołami układu. Jednym z sposobów realizacji przepływu danych jest zastosowanie
 szyny danych. Jest to zespół linii (przewodów) służących do przesyłania danych pomiędzy nadajnikami oraz odbiornikami do niej podłączonymi. 
+Do szyny danych można podłączyć wiele nadajników oraz odbiorników danych jednak tylko jeden nadajnik może wysyłać dane w danym momencie, 
+gdyż podłączenie do wspólnej linii kilku nadajników może spowodować ich uszkodzenie. Zapobiega się temu stosując na wyjściach 
+nadajników bufory trójstanowe. Układy kontrolne sterują stanem tych buforów tak aby tylko wyjście jednego nadajnika było aktywne w danym
+momencie. 
 \par
 Celem pracy jest budowa stanowiska laboratoryjnego do realizacji ćwiczeń z sterowaniem szyną danych w laboratorium techniki cyfrowej.
 To ćwiczenie ma za zadanie zapoznać studentów z sposobami realizacji komunikacji między różnymi układami cyfrowymi przy pomocy
 wspólnej magistrali danych. Rozwiązania tego typu są powszechnie stosowane w nowoczesnych układach cyfrowych takich jak mikrokontrolery oraz
-mikroprocesory w celu wymiany danych pomiędzy różnymi podzespołami danego układu. Zrozumienie mechanizmów działania systemu opartego o 
+mikroprocesory w celu wymiany danych pomiędzy różnymi podzespołami danego układu. W oparciu o szynę danych działa również wiele interfejsów 
+znajdujących się w komputerach osobistych takich jak PCI czy też magistrala pamięci systemowej. Zrozumienie mechanizmów działania systemu opartego o 
 magistralę danych pomoże studentom w zrozumienia zasad działania bardziej skomplikowanych układów cyfrowych.
 
 \end{document}

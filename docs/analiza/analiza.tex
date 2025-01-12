@@ -25,16 +25,22 @@
 
 
 \section{Analiza istniejącego stanowiska}
-Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika nr 1}.   
+Poniższy rozdział został napisany na podstawie instrukcji obsługi zestawu \cite{szyna:instrukcja} .   
 \subsection{Zasada działania stanowiska}
     
     \subsubsection{Opis stanowiska}
         Zestaw laboratoryjny modeluje system komunikacji oparty na 4 bitowej szynie danych. W skład zestawu wchodzą urządzenia nadawcze i odbiorcze
-        podłączone do szyny danych, logika sterująca procesem wymiany danych oraz elementy interfejsu użytkownika. Na rysunku \ref{fig:szyna_schemat} 
-        można zobaczyć płytę czołową zestawu która przedstawia jego schemat blokowy oraz interfejs użytkownika. 
+        podłączone do szyny danych, pamięć RAM, logika sterująca procesem wymiany danych oraz elementy interfejsu użytkownika. 
+        Na rysunku \ref{fig:szyna_schemat} można zobaczyć płytę czołową zestawu która przedstawia jego schemat blokowy oraz interfejs użytkownika. 
+        Z pomocą interfejsu użytkownika można wprowadzić do pamięci RAM instrukcje które zostaną przez zestaw wykonane. Instrukcje te mogą 
+        realizować operacje arytmetyczne lub logiczne, zapisywać dane do rejestrów lub pobierać dane od użytkownika. Pozwala to na realizacje
+        prostych programów których efektem może być na przykład obliczanie kolejnych elementów ciągu fibonacciego czy wykonanie
+        zadanej operacji matematycznej na liczbach podanych przez użytkownika.
         \par
-        W przypadku tego stanowiska działanie wspomnianych urządzeń jest emulowane na dwóch mikrokontrolerach. W dalszej części rozdziału
-        działanie zestawu zostanie opisane tak jakby było to urządzenie zbudowane z podzespołów przedstawionych na jego płycie czołowej.
+        Stanowisko laboratoryjne w pierwotnej wersji było zrealizowane w oparciu o układy logiczne z serii 74 połączone w sposób
+        pokazany na płycie czołowej zestawu. Obecna wersja zestawu została zrealizowana w ramach pracy magisterskiej \cite{szyna:praca} i jest ona 
+        oparta o mikrokontroler Atmega 32 oraz Atmega 8 emulujące część fizycznych elementów zestawu. Mikrokontrolery te są wspomagane przez szereg 
+        układów takich jak bufory oraz przerzutniki. W dalszej części tego rozdziału zostało opisane działanie pierwotnej wersji zestawu.
 
         \begin{figure}[H]
             \centering
@@ -66,7 +72,7 @@ Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika 
             \item bity $W_1, W_2$ - wybór operacji ALU
         \end{itemize}
 
-        Można zauważyć, że pamięć RAM zawiera instrukcje pracy zestawu. W celu wykonania kolejnych instrukcji należy zwiększyć o 1
+        Pamięć RAM zawiera instrukcje pracy zestawu. W celu wykonania kolejnych instrukcji należy zwiększyć o 1
         obecny adres pamięci. Wykonanie jednej instrukcji z pamięci RAM nazywamy mikrocyklem.
         \par
         Wejścia adresowe pamięci są połączone z rejestrem Rp (trzy najstarsze bity) oraz z generatorem Gs (dwa najmłodsze bity). 
@@ -102,7 +108,7 @@ Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika 
             \label{tab:nadajniki}
         \end{table}
 
-        Dekoder 2 działa analogicznie do dekodera 1 ale wytwarza sygnały sterujące odbiornikami. Sygnały generowane przez dekoder 1 podawane
+        Dekoder 2 działa analogicznie do dekodera 1 ale wytwarza sygnały sterujące odbiornikami. Sygnały generowane przez dekoder 2 podawane
         są na wejścia zapisu poszczególnych odbiorników.
 
         \begin{table}[ht]
@@ -131,23 +137,51 @@ Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika 
         Na rysunku \ref{fig:szyna_schemat} pokazano sposób połączenia rejestrów przesuwnych w układzie. Na ich wejścia danych podane są 
         sygnały $W_1, W_2$ z pamięci RAM. Natomiast na wejścia zegarowe podana jest suma logiczna sygnałów $C_{RI}, C_{R1}, C_{R2}$. Z tych zależności
         wynika, że podczas projektowania instrukcji z użyciem ALU w celu ustawienia odpowiedniego kodu operacji należy przewidzieć 
-        wygenerowanie sygnałów $C_{RI}, C_{R1}, C_{R2}$. Na rysunku \ref{fig:kodowanie_alu} przedstawiono sposób kodowania operacji do wykonania przez ALU.
+        wygenerowanie sygnałów $C_{RI}, C_{R1}, C_{R2}$. Tabela \ref{tab:kodowanie_alu} przedstawia sposób kodowania operacji do wykonania przez ALU.
 
-        \begin{figure}[H]
-            \centering
-            \includegraphics[width=\linewidth]{kodowanie_alu.png}
+        \begin{table}[ht]
+            \[
+            \begin{array}{|ccccc|ccc|ccc|cc|}
+            \hline
+            I_2 & I_1 & I_0 & C_1 & C_0 & C_T & B_T & A_T & C_C & B_C & A_C & W_1 & W_2 \\ \hline
+            X & X & X & 0 & 0 &   &   &   &   &   &   & M & S_3 \\ 
+            &   &   & 0 & 1 &   &   &   &   &   &   & S_2 & S_1 \\
+            &   &   & 1 & 0 &   &   &   &   &   &   & X & S_0 \\
+            &   &   & 1 & 1 &   &   &   &   &   &   & X & X \\ \hline
+            \end{array}
+            \]
             \caption{Zasada kodowania operacji do wykonania przez ALU}
-            \label{fig:kodowanie_alu}
-        \end{figure}
+            \label{tab:kodowanie_alu}
+        \end{table}
 
         Jednostka arytmetyczno logiczna ma możliwość zrealizowania 16 operacji arytmetycznych oraz logicznych:
-
-        \begin{figure}[H]
-            \centering
-            \includegraphics[width=\linewidth]{operacje_alu.png}
+        
+        \begin{table}[ht]
+            \[
+            \begin{array}{|c|cccc|c|c|}
+            \hline
+            \text{Lp.} & S_3 & S_2 & S_1 & S_0 & \text{Operacje arytmetyczne ($M = 0$)} & \text{Operacje logiczne ($M = 1$)} \\ \hline
+            1  & 0 & 0 & 0 & 0 & Y = 0             & Y = \overline{R_1} \\ \hline
+            2  & 0 & 0 & 0 & 1 & Y = R_1 \div R_2     & Y = \overline{R_1 \land R_2} \\ \hline
+            3  & 0 & 0 & 1 & 0 & Y = R_1 \times R_2 - 1 & Y = \overline{R_1} \lor R_2 \\ \hline
+            4  & 0 & 0 & 1 & 1 & Y = R_1 + R_2     & Y = 1 \\ \hline
+            5  & 0 & 1 & 0 & 0 & Y = R_1^2 - R_2^2 & Y = R_1 \oplus R_2 \\ \hline
+            6  & 0 & 1 & 0 & 1 & Y = R_1 \times 2  & Y = \overline{R_1 \iff R_2} \\ \hline
+            7  & 0 & 1 & 1 & 0 & Y = \frac{R_1 + R_2}{2} & Y = R_1 \implies R_2 \\ \hline
+            8  & 0 & 1 & 1 & 1 & Y = R_1 \times R_2 & Y = R_1 \land R_2 \\ \hline
+            9  & 1 & 0 & 0 & 0 & Y = R_1 \% R_2     & Y = \overline{R_1 \implies R_2} \\ \hline
+            10 & 1 & 0 & 0 & 1 & Y = R_1 \div 2     & Y = \overline{\overline{R_1} \lor R_2} \\ \hline
+            11 & 1 & 0 & 1 & 0 & Y = (R_1 \times R_2) - (R_1 + R_2) & Y = R_1 \lor R_2 \\ \hline
+            12 & 1 & 0 & 1 & 1 & Y = R_1 - R_2     & Y = \overline{R_1 \oplus R_2} \\ \hline
+            13 & 1 & 1 & 0 & 0 & Y = (R_1 - R_2)^2 & Y = R_2 \\ \hline
+            14 & 1 & 1 & 0 & 1 & Y = R_1           & Y = \overline{R_1 \vee R_2} \\ \hline
+            15 & 1 & 1 & 1 & 0 & Y = R_1^2         & Y = R_1 \iff R_2 \\ \hline
+            16 & 1 & 1 & 1 & 1 & Y = R_1 - 1       & Y = \overline{R_1 \oplus R_2} \\ \hline
+            \end{array}
+            \]
             \caption{Lista operacji realizowanych przez ALU}
-            \label{fig:operacje_alu}
-        \end{figure}
+            \label{tab:operacje_alu}
+        \end{table}
 
         \subsubsection*{Rejestry pomocnicze}
         Rejestry są układami przechowującymi dane. W zestawie występują następujące rejestry:
@@ -254,15 +288,18 @@ Poniższy rozdział został napisany na podstawie \hyperref[zal:1]{załącznika 
 
     \subsubsection{Platforma sprzętowa}
 
-    W obecnej formie zestaw jest oparty o dwa mikrokontrolery Atmega 8 oraz Atmega 32. Odpowiadają one za symulację pracy komponentów składowych zestawu
-    oraz obsługę interfejsu użytkownika. Emulacja komponentów zestawu programowo niesie za sobą szereg zalet: możliwość łatwej modyfikacji
-    działania zestawu, mniejszy pobór mocy niż w przypadku dedykowanych układów scalonych. Podejście emulacyjne jest po części wymuszone 
-    ograniczoną dostępnością w handlu dedykowanych układów scalonych takich jak jednostki ALU ze względu na ich znikomą popularność nowych projektach.
+    W obecnej formie zestaw jest oparty o dwa mikrokontrolery Atmega 32 oraz Atmega 8. Układy te są odpowiedzialne za emulacje części zestawu
+    Pierwszy układ pełni rolę pamięci RAM, jednostki ALU, rejestru $R_I$, $R_P$ oraz generatora GS. Podejście emulacyjne jest po części wymuszone 
+    ograniczoną dostępnością w handlu dedykowanych układów scalonych takich jak jednostki ALU ze względu na ich znikomą popularność nowych projektach. 
+    Drugi układ pełni rolę dekodera sygnałów sterujących. Pozostałe rejestry znajdujące się w zestawie zrealizowane zostały za pomocą układów 
+    LS74125 - cztery przerzutniki typu D. Komponenty zestawu wymieniają między sobą danę przy pomocy fizycznej szyny danych, wymusza to zastosowanie 
+    układów buforów trójstanowych na wyjściach nadajników.
     \par
-    Dużym problemem w przypadku tego zestawu jest to, że kod źródłowy programów pracujących na mikrokontrolerach w zestawie nie jest dostępny. 
-    W przypadku potrzeby naprawy błędów w oprogramowaniu bądź chęci rozwinięcia funkcjonalności zestawu konieczne byłoby napisanie
-    całego oprogramowania od nowa, co wiązałoby się z dużym nakładem pracy. Architektura oparta o dwa osobne układy na 
-    których pracują różne programy również nie jest optymalna. Podział zadań na dwa mikrokontrolery komplikuje proces pisania oprogramowania oraz
-    naprawy potencjalnych błędów.
-
+    Obecne rozwiązanie sprzętowe w powstało z myślą o zachowaniu kompatybilności z płytą czołową z pierwszej części zestawu \cite{szyna:praca}.
+    Dużym problemem tego zestawu jest brak elastyczności w rozbudowie oraz naprawie błędów. Duża część elementów zestawu została 
+    zrealizowana na fizycznych układach scalonych co znacząco utrudnia modyfikacje projektu. Rozbicie komponentów emulowanych
+    pomiędzy dwa mikrokontrolery również nie jest optymalnym rozwiązaniem gdyż komplikuje to proces rozwoju oprogramowania oraz
+    naprawy potencjalnych błędów. Dodatkową wadą obecnej platformy sprzętowej jest trudność modyfikacji interfejsu użytkownika spowodowana
+    ciasną integracją elementów płyty czołowej ze sposobem działania zestawu.
+    
 \end{document}
