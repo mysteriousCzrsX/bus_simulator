@@ -109,7 +109,7 @@
     W związku z tym do napisania oprogramowania zestawu zdecydowano się wykorzystać framework Arduino \cite{arduino_pico}. Jest to popularne środowisko 
     programistyczne wspierające wiele mikrokontrolerów oparte o język C++. Framework ten dostarcza wysokopoziomowe biblioteki do obsługi
     peryferiów mikrokontrolera. Ze względu na popularność Arduino framework dostępnych jest wiele bibliotek z nim kompatybilnych napisanych
-    przez społeczność.
+    przez społeczność. 
     \par
     Oprogramowanie zestawu podzielono na kilka modułów odpowiadających za poszczególne funkcjonalności zestawu:
 
@@ -122,8 +122,84 @@
 
     \subsubsection{Emulacja elementów układu szyny danych}
 
+    Wybrane podejście symulacji programowej układu szyny danych wymaga zaimplementowania emulacji poszczególnych elementów układu:
+
+    \begin{itemize}
+        \item Pamięci RAM
+        \item Jednostki ALU wraz z komponentami pomocniczymi
+        \item Mechanizmy sterujące pracą układu
+        \item Rejestru $R_{WY}$
+        \item Rejestru $R_P$
+        \item Rejestru $R_A$
+        \item Rejestru $R_B$
+        \item Rejestru $R_C$
+        \item Rejestru $R_I$
+    \end{itemize}
+
+    Rejestry oraz pamięć RAM są strukturami przechowującymi dane. Ich implementacje programowo można rozwiązać stosując zmienne które
+    podobnie jak rejestry przechowują dane. Pamięć RAM oraz $R_P$ przechowuj więcej niż jedną wartość dlatego ich reprezentacje w 
+    programie muszą być tablicami zmiennych o odpowiedniej długości. Symulacja jednostki arytmetyczno-logicznej wymaga implementacji
+    operacji przez nią wykonywanych \ref{tab:operacje_alu}. Operacje te można zaimplementować z użyciem operatorów logicznych oraz arytmetycznych
+    obecnych w języku C++. Kolejną częścią jednostki ALU jest system dekodowania słowa sterującego wyborem operacji oraz sposób pobierania
+    wartości słowa sterującego z kolejnych instrukcji programu. Implementacja tego elementu wymaga zaimplementowania funkcji dekodującej.
+    Ostatnią częścią konieczną do zaimplementowania jest system sterujące pracą układu. Kontrola pracy w pojedynczym mikrocyklu polega
+    na zdekodowaniu pojedynczej instrukcji oraz wykonania na jej podstawie odpowiedniej operacji. Sterowanie pracą układu w trybach program
+    oraz cykl można oprzeć na maszynie stanów która na podstawie aktualnego stanu układu oraz dokonuje odpowiednich przejść pomiędzy stanami.
+
     \subsubsection{Obsługa peryferiów sprzętowych}
 
+    Oprogramowanie układu musi obsługiwać następujące peryferia:
+
+    \begin{itemize}
+        \item Wyświetlacz LCD
+        \item Enkoder kwadraturowy
+        \item Przełączniki
+        \item Układy 74HC595 - diod LED
+    \end{itemize}
+    Przełączniki są podłączone bezpośrednio do końcówek GPIO mikrokontrolera więc ich status można odczytać za pomocą funkcji
+    dostarczonych przez framework Arduino. Diody LED są sterowane za pomocą układów 74HC595. Sterowanie tymi układami wymaga 
+    generacji sygnału zegarowego oraz wystawiania kolejnych bitów danych na wejście danych układu zgodnie z taktem zegara.
+    Zdecydowano się użyć biblioteki implementującej ten protokół w środowisku Arduino framework \cite{arduino_74hc595}.
+
+    Obsługa wyświetlacza LCD odbywa się poprzez ekspander I/O PCF8574. Komunikacja z ekspanderem odbywa się za pomocą interfejsu I2C.
+    Do obsługi wyświetlacza wykorzystano bibliotekę kompatybilną z frameworkiem Arduino - LiquidCrystal PCF8574 \cite{lcd_pcf8574}. 
+    Enkoder kwadraturowy jest obsługiwany za pomocą biblioteki wybranej do implementacji systemu menu opisanej w dalszej części dokumentu.
+
     \subsubsection{Obsługa interfejsu użytkownika}
+    Interfejs użytkownika powinien udostępniać użytkownikowi następujące funkcje:
+    \begin{itemize}
+        \item Wybór trybu pracy zestawu
+        \item Zapis oraz odczyt RAM oraz $R_P$
+        \item Wprowadzanie danych na szynę
+        \item Wizualizacja stanu elementów układu
+        \item Wybór aktualnie wyświetlanego rejestru
+    \end{itemize}
+    Wizualizacja stanów elementu układów jest realizowana za pomocą diod LED, pozostałe funkcjonalności należy zaimplementować w oparciu
+    o wyświetlacz LCD oraz enkoder. Zdecydowano się  zastosować interfejs użytkownika w formie menu. Menu jest to element interfejsu 
+    użytkownika składający się z szeregu opcji pomiędzy 
+    którymi użytkownik może nawigować. Opcje te po wybraniu mogą prowadzić do kolejnych poziomów menu lub wykonywać konkretne akcje.
+    W tym przypadku do menu będzie wyświetlane na wyświetlaczu LCD a nawigacja będzie odbywać się poprzez obrót oraz naciśnięcie enkodera.
+    Na rysunku \ref{fig:menu_diagram} przedstawiono strukturę menu dla projektowanego zestawu.
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{menu_diagram.png}
+        \caption{Diagram menu interfejsu użytkownika}
+        \label{fig:menu_diagram}
+    \end{figure}
+
+    Pierwszym menu widocznym dla użytkownika jest ogólny ekran nawigacyjny prowadzący do pozostałych opcji. Z jego poziomu można przejść
+    do zapisu/odczytu pamięci RAM oraz $R_P$, wyboru trybu pracy zestawu oraz zresetować zestaw. Z poziomu ekrany wyboru trybu pracy można 
+    rozpocząć pracę zestawu w jednym z trzech dostępnych trybów. Podczas pracy w dowolnym trybie użytkownik ma możliwość natychmiastowego 
+    zakończenia pracy zestawu oraz wyboru aktualnie wyświetlanego rejestru. W trybach cykl oraz mikrocykl znajduje się dodatkowa opcjami
+    "Kontynuuj" po wciśnięciu której zestaw wykonuje kolejny cykl/mikrocykl. Ostatni dostępny ekran jest wywoływany w przypadku
+    gdy program działający na zestawie w danej instrukcji czyta dane z klawiatury "Dane". Program jest zatrzymywany a użytkownik jest proszony
+    o wprowadzenie danych. Po zatwierdzeniu przez użytkownika zestaw kontynuuje pracę.
+
+    Do programowej implementacji systemu menu zdecydowano się wykorzystać bibliotekę Arduino menu \cite{arduino_menu}. Jest to biblioteka
+    pozwalająca na implementacje hierarchicznego systemu menu w prosty sposób. Posiada ona szereg wbudowanych prymitywów pozwalających
+    na łatwą implementacje opcji menu pełniących funkcje takie jak: wywołanie przypisanej funkcji, zmiana wartości zmiennej lub przejście
+    do kolejnego poziomu menu. Dużą zaletą tej biblioteki są wbudowane sterowniki dla wielu urządzeń wejścia oraz wyjścia. Biblioteka 
+    bez natywnie wspiera obsługę enkodera kwadraturowego oraz wyświetlacza LCD za pomocą biblioteki LiquidCrystal PCF8574 \cite{lcd_pcf8574}.
 
 \end{document}
