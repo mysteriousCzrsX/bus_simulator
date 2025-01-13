@@ -7,9 +7,7 @@ alu::alu(){
 
 void alu::set_opcode(const uint8_t _opcode){
     //this needs be called  3 times
-    uint8_t tmp_opcode = _opcode;
     if(opcode_set_count == 2){
-        tmp_opcode = tmp_opcode & 0b00000001;
         opcode = opcode << 1;
         opcode |= _opcode;
         opcode_set_count = 0;

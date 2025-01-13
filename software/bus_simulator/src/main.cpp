@@ -51,6 +51,8 @@ MENU(ram_edit,"Zapis RAM",doNothing,noEvent,noStyle
   ,EXIT("<Wroc")
 );
 
+
+
 uint8_t program_address_edit = 0;
 uint8_t program_value = 0;
 
@@ -72,6 +74,8 @@ MENU(program_edit,"Zapis programu",doNothing,noEvent,noStyle
   ,FIELD(program_value,"Wartosc","",0,255,0,0,doNothing,noEvent,noStyle)
   ,EXIT("<Wroc")
 );
+
+
 
 result end_execution_commit(eventMask e,navNode& nav, prompt &item) {
   cpu.reset();
@@ -126,12 +130,16 @@ MENU(ucycle_mode,"Mikrocykl",start_micro_cycle,enterEvent,noStyle
   ,OP("Zakoncz",end_execution_commit,enterEvent)
 );
 
+
+
 MENU(start_execution,"Praca",doNothing,noEvent,noStyle
   ,SUBMENU(program_mode)
   ,SUBMENU(cycle_mode)
   ,SUBMENU(ucycle_mode)
   ,EXIT("<Wroc")
 );
+
+
 
 uint8_t execution_clock = 10;
 
@@ -144,7 +152,6 @@ result set_exec_speed_commit(eventMask e,navNode& nav, prompt &item) {
   cpu.set_execution_speed(1000/execution_clock);
   return proceed;
 }
-
 
 MENU(busMainMenu,"Szyna danych",doNothing,noEvent,wrapStyle
   ,SUBMENU(start_execution)

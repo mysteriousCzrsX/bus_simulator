@@ -1,10 +1,10 @@
 #include "bus_cpu.h"
-#define CPUU_DEMO
+#define CPU_DEMO
 
 bus_cpu::bus_cpu()
 :ALU(){
     clear();
-    #ifdef CPUU_DEMO
+    #ifdef CPU_DEMO
     // RAM[0] = 0b10100100;
     // RAM[1] = 0b00101000;
     // RAM[2] = 0b00101000;;
@@ -156,10 +156,10 @@ ucycle_status bus_cpu::process_microcycle(){
 
 bus_cpu_state bus_cpu::schedule_execution(){
     ucycle_status ucycle_return;
-    static uint64_t last_succesful_ucycle = 0;
+    static uint64_t last_successful_ucycle = 0;
     
     if (internal_state == EXECUTION){
-        uint64_t time_difference = millis() - last_succesful_ucycle;
+        uint64_t time_difference = millis() - last_successful_ucycle;
         Serial.print("CPU> Time difference: ");
         Serial.println(time_difference);
         if(time_difference > execution_speed || type == CYCLE || type == MICRO_CYCLE){
@@ -171,7 +171,7 @@ bus_cpu_state bus_cpu::schedule_execution(){
         switch (ucycle_return){
             case SUCCESS:
             Serial.println("CPU> Micro cycle done");
-            last_succesful_ucycle = millis();
+            last_successful_ucycle = millis();
                 switch (type){
                     case CYCLE:
                         if(Gs == 0){
