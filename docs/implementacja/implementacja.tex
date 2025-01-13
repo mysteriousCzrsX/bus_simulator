@@ -11,6 +11,8 @@
 \usepackage{capt-of}
 \usepackage{hyperref}
 \usepackage{float}
+\usepackage{listings}
+
 \graphicspath{{../}}
 \author{Cezary Wieczorkowski}
 \date{\today}
@@ -91,7 +93,7 @@ w port wejściowy mikrokontrolera rezystory podciągające do napięcia zasilani
 
 \subsection{Konstrukcja prototypu}
 
-
+Poniżej przedstawiono pełen schemat elektryczny zestawu. Na podstawie schematu został wykonany prototyp.
 
 \begin{figure}[H]
     \centering
@@ -100,14 +102,200 @@ w port wejściowy mikrokontrolera rezystory podciągające do napięcia zasilani
     \label{fig:electrical_schematic}
 \end{figure}
 
+Prototyp został skonstruowany na płytce stykowej. Jest to płytka wykonana z plastiku z otworami w których umieszczane są nóżki elementów lub przewody.
+W środku plastikowej konstrukcji znajdują się blaszki które łączą się z elementami wprowadzonymi do otworów. W użytej płytce stykowej cztery sąsiednie
+otwory przypadają na jedną blaszkę. Takie rozwiązanie pozwala na szybkie modyfikacje konstruowanego oraz ułatwia testowanie
+budowanego układu elektrycznego. Jedną z wad układów na płytkach stykowych są duże pojemności pomiędzy połączeniami wynikające
+z konstrukcji płytki. W przypadku budowanego zestawu nie stanowi to problemu gdyż nie występują w nim sygnały o wysokich częstotliwościach.
+
+W konstrukcji wykorzystano trzy połączone ze sobą płytki stykowe. Na pierwszej umieszczono mikrokontroler, przełączniki oraz enkoder.
+Na drugiej umieszczono rejestry przesuwne wraz z diodami LED. Na trzeciej umieszczono wyświetlacz LCD wraz z konwerterem poziomów logicznych.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{prototype.jpg}
+    \caption{Zestaw wykonany na płytce stykowej}    
+    \label{fig:prototype}
+\end{figure}
+
 
 \subsection{Część programowa}
 
-\subsubsection{Obsługa rejestrów oraz przycisków}
+\subsubsection{Obsługa diod LED oraz przełączników}
+
+Do obsługi rejestrów przesuwnych oraz przełączników została napisana klasa \texttt{UserIO}. Klasa ta posiada metody ustawiania stanu
+diod LED oraz odczytu stanu przełączników. Konstruktor klasy inicjalizuje końcówki GPIO do których połączone są przyciski jako wejścia oraz
+inicjalizuje obiekt \texttt{shift\_register} klasy \texttt{ShiftRegister} który obsługuje rejestry przesuwne. 
+\par
+Do odczytu przycisków służy metoda \texttt{read\_all\_buttons} która zwraca stan wszystkich przycisków w postaci 16 bitowej liczby.
+
+\begin{lstlisting}[language=C++]
+    uint16_t userIO::read_all_buttons(){
+    uint16_t button_data = 0;
+    for (int i = 0; i < 12; i++){
+        button_data |= (digitalRead(buttons[i]) << i);
+    }
+    return button_data;
+}
+\end{lstlisting}
+
+Wartość jest odczytywana w pętli wykonywanej dla każdego przycisku. W każdej iteracji odczytywany jest stan danego przycisku który
+jest następnie przesuwany o ilość bitów odpowiadającą numerowi przycisku otrzymana wartość poddawana bitowej sumie logicznej z wartością zmiennej
+zwracanej przez funkcje. W ten sposób otrzymujemy 16 bitową liczbę w której każdy bit odpowiada stanowi jednego przycisku.
+Funkcje \texttt{read\_user\_input\_buttons} oraz \texttt{read\_data\_input\_buttons} odczytują odpowiednio dane
+z klawiatury wprowadzania danych na szynę oraz z klawiatury wprowadzania danych do RAM/$R_P$. Obydwie funkcje używają funkcji \texttt{read\_all\_buttons}
+do odczytu stanu przycisków a następnie wydobywają z odczytanej wartości odpowiednie bajty danych.
+\par
+Obsługa diod LED odbywa się za pomocą metody \texttt{render\_led}. 
+
+\begin{lstlisting}[language=C++]
+    void userIO::render_led(const bus_cpu_status status){
+        uint8_t led_values[REG_NO] = {0, 0, 0};
+        led_values[0] = status.RAM_value;
+        led_values[1] = status.Rwy;
+        switch (displayed_register){
+            case Ra:
+                led_values[1] |= (status.Ra << 4);
+                break;
+            case Rb:
+                led_values[1] |= (status.Rb << 4);
+                break;
+            case Rc:
+                led_values[1] |= (status.Rc << 4);
+                break;
+            default:
+                led_values[1] |= (status.Ra << 4);
+                break;
+        }
+        led_values[2] = status.RAM_address;
+        shift_register.setAll(led_values);
+    }
+\end{lstlisting}
+
+Funkcja ta przyjmuje jako argument strukturę \texttt{bus\_cpu\_status} która zawiera wartości rejestrów, słowa pamięci RAM oraz adresu pamięci RAM.
+Przekazane wartości są przypisywane do tablicy w odpowiedniej kolejności tak aby wyświetliły się na odpowiednich diodach LED. W tej funkcji
+realizowane jest również przełączanie wyświetlanych rejestrów. W zależności od wartości zmiennej \texttt{displayed\_register} na diodach LED
+wyświetlana jest wartość odpowiedniego rejestru. Na koniec wartości z tablicy są przekazywane do metody \texttt{setAll} obiektu \texttt{shift\_register}
+która ustawia wartości w rejestrach przesuwnych.
+
+\subsubsection{Symulacja jednostki arytmetyczno-logicznej}
+
+Symulacja jednostki arytmetyczno-logicznej została zrealizowana w klasie \texttt{ALU}.
+Klasa ta posiada metody realizujące zadaną operacje oraz ustawiania kodu operacji. Metoda \texttt{set\_opcode} ustawia kod operacji.
+W celu poprawnego ustawienia kodu powinna ona zostać wywołana trzy razy.
+
+\begin{lstlisting}[language=C++]
+    void alu::set_opcode(const uint8_t _opcode){
+        if(opcode_set_count == 2){
+            opcode = opcode << 1;
+            opcode |= _opcode;
+            opcode_set_count = 0;
+        }
+        else{
+            opcode = opcode << 2;
+            opcode |= _opcode;
+        }
+        opcode_set_count++;
+    }
+\end{lstlisting}
+
+Podczas pierwszych dwóch wywołań metoda kod operacji jest przesuwany o dwa bity w lewo a następnie do dwóch najmłodszych bitów zostają
+zapisane dwa najmłodsze bity kodu przekazanego jako argument funkcji. W trzecim wywołaniu funkcji kod operacji jest przesuwany o jeden bit w lewo
+a następnie do najmłodszego bitu zostaje przepisana wartość najmłodszego bitu kodu przekazanego do argumentu funkcji. W ten sposób uzyskujemy
+pełen pięciobitowy kod operacji. 
+\par
+Metoda \texttt{calculate} oblicza wynik operacji zadanej kodem operacji. Jako argumenty funkcja przyjmuje dwie liczby na których ma zostać wykonana
+operacja. Funkcja na początku rozpatruje najstarszy bit kodu operacji. W zależności od jego wartości wykonana zostanie operacja logiczna lub arytmetyczna.
+Następnie funkcja wykonuje odpowiednią operacje zależnie od pozostałych czterech bitów kodu operacji. Ze względu na 4 bitową architekturę zestawu oraz
+brak implementacji bitu przeniesienia w oryginalnym zestawie funkcja zwraca tylko cztery ostatnie bity wyniku operacji. 
+
+\subsubsection{Symulacja pozostałych elementów zestawu}
+
+Symulacja pozostałych elementów zestawu została zrealizowana w klasie \texttt{CPU}. Klasa ta implementuje funkcje symulujące działanie zestawu oraz
+szereg funkcji pomocniczych służących do sterowania pracą zestawu, ustawiania jego parametrów czy odczytu jego stanu.
+W klasie tej jako zmienne prywatne zdefiniowane są wszystkie rejestry wchodzące w skład zestawu.
+
+\begin{lstlisting}[language=C++]
+    class bus_cpu{
+        private:
+            uint8_t Ra;
+            uint8_t Rb;
+            uint8_t Rc;
+            uint8_t Rwy;
+            uint8_t R1;
+            uint8_t R2;
+            uint8_t Ri;
+            uint8_t Ri_tmp;
+            uint8_t Gs;
+        
+            uint8_t Rp_address;
+        
+            std::array<uint8_t, RAM_SIZE> RAM;
+            std::array<uint8_t, PROGRAM_SIZE> Rp;
+        
+            alu ALU;
+\end{lstlisting}
+
+Pomimo, że rejestry są czterobitowe zostały zdefiniowane jako ośmiobitowe liczby całkowite bez znaku. Jest to spowodowane tym, że w języku C++ nie 
+ma typów danych o mniejszej niż 8 liczbie bitów. Zdefiniowano także pamięć RAM oraz rejestr $R_P$ jako tablice o odpowiednich rozmiarach. 
+Klasa posiada również obiekt klasy \texttt{ALU} symulującej jednostkę arytmetyczno-logiczną.
+\par
+Podstawową funkcją klasy jest funkcja \texttt{process\_microcycle} która realizuje wykonuje jeden mikrocykl. 
+W pierwszej kolejności na podstawie wartości rejestru $R_I$ oraz wartości generatora stanów $G_S$ obliczany jest adres w pamięci RAM z którego 
+odczytana zostanie instrukcja Następnie z odczytanej instrukcji wydobywane są bity operacji dla ALU, kod transmitera oraz odbiornika. 
+
+\begin{lstlisting}[language=C++]
+    ucycle_status bus_cpu::process_microcycle(){
+    uint8_t address = calculate_address();
+    uint8_t instruction = RAM[address]; 
+    uint8_t alu_opcode = instruction & 0b00000011;
+    uint8_t rx_ctrl = (instruction & 0b00011100) >> 2;
+    uint8_t tx_ctrl = (instruction & 0b11100000) >> 5;
+    uint8_t* transmiter;
+    uint8_t* receiver;
+    uint8_t alu_result = 0;
+\end{lstlisting}
+\par
+Symulacja transmisji danych na szynie odbywa się na zasadzie wskaźników. W zależności od wartości kodu transmitera oraz odbiornika do
+wskaźników \texttt{transmiter} oraz \texttt{receiver} przypisywane są odpowiednie adresy odpowiednich zmiennych reprezentujących odbiorniki oraz nadajniki.
+W przypadku gdy odbiornikiem jest $R_I$, $R_1$ lub $R_2$ dodatkowo ustawiany jest kod operacji dla ALU. 
+Na koniec wskaźniki wartość pod adresem transmitera jest przypisywana pod adres odbiornika.
+\par
+W przypadku gdy nadajnikiem jest klawiatura wprowadzania danych na szynę funkcja zwraca kod \texttt{NEED\_INPUT} który jest interpretowany
+przez maszynę stanów sterującą wykonaniem programu. Kiedy dane zostaną pobrane przez użytkownika ustawiona zostaje flaga \texttt{user\_input\_ready}
+która powoduje poprawne wykonanie transmisji przy kolejnym wywołaniu funkcji przetwarzania mikrocyklu.
+
+\begin{lstlisting}[language=C++]
+        case 5: 
+            if(!user_input_ready){
+                return NEED_INPUT;
+            }
+            transmiter = &user_input;
+            user_input_ready = false;
+            break;
+\end{lstlisting}
+\par
+Kiedy funkcja zakończy przetwarzanie mikrocyklu wartość generatora GS jest inkrementowana. Jeżeli wartość generatora przekroczy wartość 3
+zwiększany jest adres rejestru $R_P$ a generator jest resetowany. Wartość zmiennej R\_I jest ustawiana na wartość zmiennej R\_I\_tmp.
+Wartość rejestru $R_I$ musi pozostać stała przez okres trwania cyklu (4 mikrocykle) ponieważ jest ona używana do obliczenia adresu pamięci RAM
+z którego odczytywana jest instrukcja. Po przepełnieniu się generatora GS można zmienić wartość w rejestrze $R_I$.
+ 
+\begin{lstlisting}[language=C++]
+    Gs++;
+    if(Gs > 3){
+        Rp_address++;
+        Gs = 0;
+        ALU.clear_opcode();
+        Ri = Ri_tmp;
+    }
+    return SUCCESS;
+}
+\end{lstlisting}
+
+\par
 
 
-
-\subsubsection{Symulacja elementów zestawu}
+\subsubsection{Obsługa interfejsu użytkownika}
 
 
 
