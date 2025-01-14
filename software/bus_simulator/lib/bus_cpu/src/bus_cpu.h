@@ -49,18 +49,19 @@ private:
     uint8_t Rwy;
     uint8_t R1;
     uint8_t R2;
-    uint8_t Ri; //instruction pointer
+    uint8_t Ri;
     uint8_t Ri_tmp;
     uint8_t Gs;
 
     uint8_t Rp_address;
-    uint8_t user_input;
-    bool user_input_ready = false;
 
     std::array<uint8_t, RAM_SIZE> RAM;
     std::array<uint8_t, PROGRAM_SIZE> Rp;
 
     alu ALU;
+
+    uint8_t user_input;
+    bool user_input_ready = false;
 
     bus_cpu_state internal_state;
     execution_type type;

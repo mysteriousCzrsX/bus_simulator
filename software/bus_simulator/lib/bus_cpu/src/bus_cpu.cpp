@@ -298,6 +298,7 @@ void bus_cpu::set_execution_speed(const uint32_t speed){
     }
 
  }
+ 
  void bus_cpu::print_registers(){
     Serial.print("CPU>Ra: ");
     Serial.println(Ra);

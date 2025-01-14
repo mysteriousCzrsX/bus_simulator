@@ -16,10 +16,6 @@ void alu::set_opcode(const uint8_t _opcode){
         opcode = opcode << 2;
         opcode |= _opcode;
     }
-    Serial.print("ALU> opcode to set ");
-    Serial.println(_opcode);
-    Serial.print("ALU> opcode after set ");
-    Serial.println(opcode);
     opcode_set_count++;
 }
 
@@ -61,7 +57,7 @@ uint8_t alu::calculate(const uint8_t operand1, const uint8_t operand2){
                 calculation_result = ~(operand1 <= operand2);
                 break;
             case 9:
-                calculation_result = ~(operand1 & operand2); //duplication ??
+                calculation_result = ~(operand1 & operand2);
                 break;
             case 10:
                 calculation_result = operand1 & operand2;
@@ -79,10 +75,9 @@ uint8_t alu::calculate(const uint8_t operand1, const uint8_t operand2){
                 calculation_result = operand1 == operand2;
                 break;
             case 15:
-                calculation_result = ~(operand1 ^ operand2); // duplication ??
+                calculation_result = ~(operand1 ^ operand2);
                 break;
             default:
-                //assert sth
                 return 0;
                 break;
         }
@@ -139,7 +134,6 @@ uint8_t alu::calculate(const uint8_t operand1, const uint8_t operand2){
                 calculation_result = operand1 - 1;
                 break;
             default:
-                //assert sth
                 return 0;
                 break;
         }
