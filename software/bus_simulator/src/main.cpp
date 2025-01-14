@@ -196,25 +196,17 @@ void setup() {
 }
 
 void loop() {
-  static bus_cpu_state cpu_state;
+  bus_cpu_state cpu_state;
   nav.poll();
   cpu_state = cpu.schedule_execution();
-  switch (cpu_state) {
-    case bus_cpu_state::READY:
-      break;
-    case bus_cpu_state::EXECUTION:
-      break;
-    case bus_cpu_state::CYCLE_DONE:
-      break;
-    case bus_cpu_state::DONE:
-      break;
-    case bus_cpu_state::USER_INPUT:
-      nav.idleOn(user_input);
-      break;
-    case bus_cpu_state::EXCEPTION:
-      Serial.println("Exception occured");
-      break;
+
+  if{cpu_state == bus_cpu_state::USER_INPUT} {
+    nav.idleOn(user_input);
   }
+  else if{cpu_state == bus_cpu_state::EXCEPTION} {
+    Serial.println("Zestaw napotkał błąd");
+  }
+
   io.set_displayed_register(displayed_register);
   cpu.get_register_values(cpu_status);
   io.render_led(cpu_status);
