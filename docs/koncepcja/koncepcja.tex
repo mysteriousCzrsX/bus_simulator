@@ -74,19 +74,19 @@
 
     \subsubsection{Dodatkowe peryferia}
 
-    Sumując liczbę końcówek GPIO mikrokontrolera potrzebną do obsługi wybranych peryferiów otrzymujemy 43. 
-    Mikrokontroler RP2040 posiada 30 końcówek GPIO \cite{rp:rp2040} co oznacza, że nie jest możliwe bezpośrednie podłączenie wszystkich peryferiów.
-    W celu obsługi wszystkich peryferiów konieczne jest zastosowanie dodatkowych układów scalonych rozszerzających ilość dostępnych końcówek GPIO.
+    Sumując liczbę GPIO mikrokontrolera potrzebną do obsługi wybranych peryferiów otrzymujemy 43. 
+    Mikrokontroler RP2040 posiada 30 wyprowadzeń GPIO \cite{rp:rp2040} co oznacza, że nie jest możliwe bezpośrednie podłączenie wszystkich peryferiów.
+    W celu obsługi wszystkich peryferiów konieczne jest zastosowanie dodatkowych układów scalonych rozszerzających ilość dostępnych GPIO.
     \par
-    Jednym z prostszych tego typu układów jest rejestr przesuwny. Jest to układ który posiada wejście zegarowe oraz wejście danych
-    danych. Po każdym zboczu zegara dane z wejścia danych są przesuwane do kolejnej komórki rejestru. Niektóre rejestry przesuwne 
+    Jednym z prostszych tego typu układów jest rejestr przesuwny. Jest to układ który posiada wejście zegarowe oraz wejście danych. 
+    Po każdym zboczu zegara dane z wejścia danych są przesuwane do kolejnej komórki rejestru. Rejestry przesuwne 
     posiadają wyjście danych z ostatniej komórki rejestru. Dzięki temu można połączyć kilka rejestrów kaskadowo. Jednym z takich układów jest
     74HC595 \cite{ti:74hc595}. Jest to 8 bitowy rejestr przesuwny z wyjściem równoległym. Rejestry te zastosowano do sterowania diodami LED. Użyto trzech
     układów ze względu na konieczność wysterowania 22 diod.
     \par
-    W celu redukcji ilości końcówek GPIO potrzebnych do obsługi wyświetlacza LCD zdecydowano się zastosować ekspander I/O PCF8574 \cite{ti:pcf8574}.
+    W celu redukcji ilości wyprowadzeń GPIO potrzebnych do obsługi wyświetlacza LCD zdecydowano się zastosować ekspander I/O PCF8574 \cite{ti:pcf8574}.
     Jest to układ który pozwala na sterowanie 8 bitowym portem wejścia/wyjścia za pomocą interfejsu I2C. Dzięki temu obsługa wyświetlacza 
-    zajmuje tylko dwie końcówki GPIO potrzebne do obsługi interfejsu I2C. 
+    zajmuje tylko dwa wyprowadzenia GPIO potrzebne do obsługi interfejsu I2C. 
 
     \subsubsection{Schemat blokowy sprzętowej części zestawu}
 
@@ -94,7 +94,7 @@
     
     \begin{figure}[H]
         \centering
-        \includegraphics[width=\linewidth]{hardware_diagram.png}
+        \includegraphics[scale=0.6]{hardware_diagram.png}
         \caption{Schemat blokowy sprzętowej części zestawu}
         \label{fig:hardware_diagram}
     \end{figure}
@@ -115,7 +115,7 @@
 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=\linewidth]{software_diagram.png}
+        \includegraphics[scale=0.6]{software_diagram.png}
         \caption{Schemat blokowy oprogramowania zestawu}
         \label{fig:software_diagram}
     \end{figure}
@@ -138,10 +138,13 @@
 
     Rejestry oraz pamięć RAM są strukturami przechowującymi dane. Ich implementacje programowo można rozwiązać stosując zmienne które
     podobnie jak rejestry przechowują dane. Pamięć RAM oraz $R_P$ przechowuj więcej niż jedną wartość dlatego ich reprezentacje w 
-    programie muszą być tablicami zmiennych o odpowiedniej długości. Symulacja jednostki arytmetyczno-logicznej wymaga implementacji
-    operacji przez nią wykonywanych \ref{tab:operacje_alu}. Operacje te można zaimplementować z użyciem operatorów logicznych oraz arytmetycznych
+    programie muszą być tablicami zmiennych o odpowiedniej długości. 
+    \par
+    Symulacja jednostki arytmetyczno-logicznej wymaga implementacji
+    operacji przez nią wykonywanych. Operacje te można zaimplementować z użyciem operatorów logicznych oraz arytmetycznych
     obecnych w języku C++. Kolejną częścią jednostki ALU jest system dekodowania słowa sterującego wyborem operacji oraz sposób pobierania
     wartości słowa sterującego z kolejnych instrukcji programu. Implementacja tego elementu wymaga zaimplementowania funkcji dekodującej.
+    \par
     Ostatnią częścią konieczną do zaimplementowania jest system sterujące pracą układu. Kontrola pracy w pojedynczym mikrocyklu polega
     na zdekodowaniu pojedynczej instrukcji oraz wykonania na jej podstawie odpowiedniej operacji. Sterowanie pracą układu w trybach program
     oraz cykl można oprzeć na maszynie stanów która na podstawie aktualnego stanu układu oraz dokonuje odpowiednich przejść pomiędzy stanami.
@@ -160,7 +163,7 @@
     dostarczonych przez framework Arduino. Diody LED są sterowane za pomocą układów 74HC595. Sterowanie tymi układami wymaga 
     generacji sygnału zegarowego oraz wystawiania kolejnych bitów danych na wejście danych układu zgodnie z taktem zegara.
     Zdecydowano się użyć biblioteki implementującej ten protokół w środowisku Arduino framework \cite{arduino_74hc595}.
-
+    \par
     Obsługa wyświetlacza LCD odbywa się poprzez ekspander I/O PCF8574. Komunikacja z ekspanderem odbywa się za pomocą interfejsu I2C.
     Do obsługi wyświetlacza wykorzystano bibliotekę kompatybilną z frameworkiem Arduino - LiquidCrystal PCF8574 \cite{lcd_pcf8574}. 
     Enkoder kwadraturowy jest obsługiwany za pomocą biblioteki wybranej do implementacji systemu menu opisanej w dalszej części dokumentu.
@@ -183,19 +186,19 @@
 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=\linewidth]{menu_diagram.png}
+        \includegraphics[scale=0.6]{menu_diagram.png}
         \caption{Diagram menu interfejsu użytkownika}
         \label{fig:menu_diagram}
     \end{figure}
 
     Pierwszym menu widocznym dla użytkownika jest ogólny ekran nawigacyjny prowadzący do pozostałych opcji. Z jego poziomu można przejść
-    do zapisu/odczytu pamięci RAM oraz $R_P$, wyboru trybu pracy zestawu oraz zresetować zestaw. Z poziomu ekrany wyboru trybu pracy można 
+    do zapisu/odczytu pamięci RAM oraz $R_P$, wyboru trybu pracy zestawu oraz zresetować zestaw. Z poziomu ekranu wyboru trybu pracy można 
     rozpocząć pracę zestawu w jednym z trzech dostępnych trybów. Podczas pracy w dowolnym trybie użytkownik ma możliwość natychmiastowego 
     zakończenia pracy zestawu oraz wyboru aktualnie wyświetlanego rejestru. W trybach cykl oraz mikrocykl znajduje się dodatkowa opcjami
-    "Kontynuuj" po wciśnięciu której zestaw wykonuje kolejny cykl/mikrocykl. Ostatni dostępny ekran jest wywoływany w przypadku
-    gdy program działający na zestawie w danej instrukcji czyta dane z klawiatury "Dane". Program jest zatrzymywany a użytkownik jest proszony
+    ``Kontynuuj'', po wciśnięciu której zestaw wykonuje kolejny cykl/mikrocykl. Ostatni dostępny ekran jest wywoływany w przypadku
+    gdy program działający na zestawie w danej instrukcji czyta dane z klawiatury ``Dane''. Program jest zatrzymywany a użytkownik jest proszony
     o wprowadzenie danych. Po zatwierdzeniu przez użytkownika zestaw kontynuuje pracę.
-
+    \par
     Do programowej implementacji systemu menu zdecydowano się wykorzystać bibliotekę Arduino menu \cite{arduino_menu}. Jest to biblioteka
     pozwalająca na implementacje hierarchicznego systemu menu w prosty sposób. Posiada ona szereg wbudowanych prymitywów pozwalających
     na łatwą implementacje opcji menu pełniących funkcje takie jak: wywołanie przypisanej funkcji, zmiana wartości zmiennej lub przejście

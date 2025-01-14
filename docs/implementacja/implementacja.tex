@@ -42,7 +42,7 @@ Sposób podłączenia wyświetlacza LCD oraz enkodera został przedstawiony na r
 \end{figure}
 
 Obsługa modułu enkodera wymaga podłączenia zasilania, sygnałów A i B - wyjść impulsów enkodera oraz sygnału SW - wyjścia przycisku. 
-Sygnały A, B oraz SW zostały podłączone bezpośrednio do końcówek GPIO mikrokontrolera. Obsługa wyświetlacza wymaga podłączenia 
+Sygnały A, B oraz SW zostały podłączone bezpośrednio do wyprowadzeń GPIO mikrokontrolera. Obsługa wyświetlacza wymaga podłączenia 
 zasilania oraz sygnałów SCL i SDA dla interfejsu I2C używanego do komunikacji z ekspanderem I/O PCF8574 obsługującym wyświetlacz. 
 Pierwotnie wyświetlacz oraz ekspander zasilono tak z napięcia 3,3 V. Podczas wstępnego uruchomienia zestawu zauważono, że
 obraz na wyświetlaczu jest niewyraźny. Było to spowodowane zbyt niskim napięciem zasilania dla poprawnego funkcjonowania podświetlenia
@@ -58,11 +58,11 @@ w celu sterowania układem należy wykonać następujące połączenia:
 \begin{itemize}
     \item VCC - zasilanie 3,3 V
     \item GND - masa
-    \item SER - linia danych, w pierwszym układzie podłączona do końcówki GPIO mikrokontrolera natomiast w kolejnych 
+    \item SER - linia danych, w pierwszym układzie podłączona do wyprowadzenia GPIO mikrokontrolera natomiast w kolejnych 
     układach podłączona do wyjścia danych  poprzedniego układu
     \item $\overline{SRCLR}$ - linia resetu podłączona na stałe do napięcia zasilania
-    \item SRCLK - linia zegara podłączone do końcówki GPIO mikrokontrolera
-    \item RCLK - linia zegara rejestrów wyjściowych podłączone do końcówki GPIO mikrokontrolera
+    \item SRCLK - linia zegara podłączone do GPIO mikrokontrolera
+    \item RCLK - linia zegara rejestrów wyjściowych podłączone do GPIO mikrokontrolera
     \item $\overline{OE}$ - włączenie wyjścia podłączone na stałe do masy
 \end{itemize}
 
@@ -80,8 +80,8 @@ stosujemy szeregowy rezystor. Wartość tego rezystora obliczamy z następujące
     \label{fig:led_connection}
 \end{figure}
 
-Przełączniki zostały podłączone bezpośrednio do końcówek GPIO mikrokontrolera. Włączenie przycisku powoduje zwarcie linii GPIO z masą
-co zostanie odczytane jako stan niski na danej końcówce. Stan wysoki w przypadku rozwarcia przycisku jest  wymuszany przez wbudowane
+Przełączniki zostały podłączone bezpośrednio do wyprowadzeń GPIO mikrokontrolera. Włączenie przycisku powoduje zwarcie linii GPIO z masą
+co zostanie odczytane jako stan niski na danym wyprowadzeniu. Stan wysoki w przypadku rozwarcia przycisku jest  wymuszany przez wbudowane
 w port wejściowy mikrokontrolera rezystory podciągające do napięcia zasilania.
 
 \begin{figure}[H]
@@ -124,7 +124,7 @@ Na drugiej umieszczono rejestry przesuwne wraz z diodami LED. Na trzeciej umiesz
 \subsubsection{Obsługa diod LED oraz przełączników}
 
 Do obsługi rejestrów przesuwnych oraz przełączników została napisana klasa \texttt{UserIO}. Klasa ta posiada metody ustawiania stanu
-diod LED oraz odczytu stanu przełączników. Konstruktor klasy inicjalizuje końcówki GPIO do których połączone są przyciski jako wejścia oraz
+diod LED oraz odczytu stanu przełączników. Konstruktor klasy inicjalizuje wyprowadzenia GPIO do których połączone są przyciski jako wejścia oraz
 inicjalizuje obiekt \texttt{shift\_register} klasy \texttt{ShiftRegister} który obsługuje rejestry przesuwne. 
 \par
 Do odczytu przycisków służy metoda \texttt{read\_all\_buttons} która zwraca stan wszystkich przycisków w postaci 16 bitowej liczby.
@@ -199,15 +199,15 @@ W celu poprawnego ustawienia kodu powinna ona zostać wywołana trzy razy.
     }
 \end{lstlisting}
 
-Podczas pierwszych dwóch wywołań metoda kod operacji jest przesuwany o dwa bity w lewo a następnie do dwóch najmłodszych bitów zostają
-zapisane dwa najmłodsze bity kodu przekazanego jako argument funkcji. W trzecim wywołaniu funkcji kod operacji jest przesuwany o jeden bit w lewo
+Podczas pierwszych dwóch wywołań metoda kod operacji jest przesuwany o dwa bity w lewo, a następnie do dwóch najmłodszych bitów zostają
+zapisane dwa najmłodsze bity kodu przekazanego jako argument funkcji. W trzecim wywołaniu funkcji kod operacji jest przesuwany o jeden bit w lewo,
 a następnie do najmłodszego bitu zostaje przepisana wartość najmłodszego bitu kodu przekazanego do argumentu funkcji. W ten sposób uzyskujemy
 pełen pięciobitowy kod operacji. 
 \par
 Metoda \texttt{calculate} oblicza wynik operacji zadanej kodem operacji. Jako argumenty funkcja przyjmuje dwie liczby na których ma zostać wykonana
 operacja. Funkcja na początku rozpatruje najstarszy bit kodu operacji. W zależności od jego wartości wykonana zostanie operacja logiczna lub arytmetyczna.
 Następnie funkcja wykonuje odpowiednią operacje zależnie od pozostałych czterech bitów kodu operacji. Ze względu na 4 bitową architekturę zestawu oraz
-brak implementacji bitu przeniesienia w oryginalnym zestawie funkcja zwraca tylko cztery ostatnie bity wyniku operacji. 
+brak implementacji bitu przeniesienia w oryginalnym zestawie funkcja zwraca tylko cztery najmłodsze bity wyniku operacji. 
 
 \subsubsection{Symulacja pozostałych elementów zestawu}
 
