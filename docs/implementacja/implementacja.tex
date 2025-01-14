@@ -493,8 +493,55 @@ co powoduje aktualizacje wartości wyświetlanej w polu \texttt{"Wartość"}.
       }
 \end{lstlisting}
 
+\par
+Ekran pobierania danych od użytkownika został zrealizowany w funkcji \texttt{user\_input}. Funkcja ta jest wywoływana w momencie gdy zestaw
+oczekuje na dane od użytkownika. Funkcja wyświetla komunikat proszący o podanie wartości. Po wciśnięciu przycisku pobiera wartość z klawiatury.
+
+\begin{lstlisting}[language=C++]
+    result user_input(menuOut& o,idleEvent e) {
+        switch(e) {
+          case idleStart:
+            o.print("Wprowadz wartosc");
+            break;
+          case idleEnd:
+            cpu.take_user_input(io.read_user_input_buttons());
+          break;
+        }
+        return proceed;
+      }
+\end{lstlisting}
+
 \subsubsection{Główna pętla programu}
 
+Program rozpoczyna się od wywołania funkcji \texttt{setup}. W tej funkcji przeprowadzana jest inicjalizacja wyświetlacza LCD, enkodera
+oraz obiektu nawigacyjnego biblioteki Arduino Menu. Następnie wywoływana jest funkcja \texttt{loop} w której znajduje się główna logika programu.
+Funkcja ta jest wywoływana w nieskończonej pętli.
 
+\begin{lstlisting}[language=C++]
+    void loop() {
+        bus_cpu_state cpu_state;
+        nav.poll();
+        cpu_state = cpu.schedule_execution();
+      
+        if{cpu_state == bus_cpu_state::USER_INPUT} {
+          nav.idleOn(user_input);
+        }
+        else if{cpu_state == bus_cpu_state::EXCEPTION} {
+          Serial.println("Zestaw napotkal blad"); 
+        }
+      
+        io.set_displayed_register(displayed_register);
+        cpu.get_register_values(cpu_status);
+        io.render_led(cpu_status);
+        delay(50);
+      }
+\end{lstlisting}
+
+W głównej pętli programu jest wywoływana funkcja \texttt{poll} obiektu nawigacyjnego. Funkcja ta odpowiada za przetwarzanie zdarzeń
+związanych z interfejsem użytkownika. Następnie wywoływana jest funkcja \texttt{schedule\_execution} która zarządza pracą symulatora
+szyny danych. W zależności od zwróconego stanu zestawu wywoływane są odpowiednie funkcje. W przypadku gdy zestaw oczekuje na dane od użytkownika
+wywoływana jest funkcja \texttt{idleOn} która wywoła okno menu odpowiedzialne za wprowadzanie danych. W przypadku wystąpienia błędu zostanie
+wydrukowana informacja na porcie szeregowym. Kolejne trzy funkcje odpowiadają za aktualizacje stanu diod LED na podstawie aktualnych wartości
+rejestrów zestawu. Na końcu pętli programu znajduje się opóźnienie 50 milisekund które zapewnia stabilne działanie programu.
 
 \end{document}

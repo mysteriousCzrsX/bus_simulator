@@ -26,6 +26,28 @@
 
 \section{Testy stanowiska}
 
-Opis testów przeprowadzonych na stanowisku. Przykłady oraz analiza użytych programów testowych.
+    \begin{table}[ht]
+        \[
+        \begin{array}{|c|c|c|c|c|c|}
+        \hline
+        \textbf{Nadajnik} & \textbf{Odbiornik} & \textbf{ALU} & \textbf{Adres} & \textbf{Rp} \\ \hline
+        1 & 0 & 1 & 0 & \textcolor{red}{0} & 0 \\ \hline
+        1 & 0 & 0 & 1 & \textcolor{red}{1} & 0 \\ \hline
+        0 & 1 & 0 & 0 & \textcolor{red}{2} & 0 \\ \hline
+        0 & 1 & 1 & 0 & \textcolor{red}{3} & 0 \\ \hline
+        \multicolumn{5}{|c|}{} \\ \hline
+        0 & 0 & 0 & 1 & \textcolor{red}{4} & 3 \\ \hline
+        0 & 0 & 0 & 1 & \textcolor{red}{5} & 3 \\ \hline
+        0 & 1 & 0 & 0 & \textcolor{red}{6} & 3 \\ \hline
+        1 & 0 & 1 & 1 & \textcolor{red}{7} & 3 \\ \hline
+        \multicolumn{5}{|c|}{} \\ \hline
+        0 & 0 & 0 & 1 & \textcolor{red}{8} & 3 \\ \hline
+        0 & 0 & 0 & 1 & \textcolor{red}{9} & 3 \\ \hline
+        0 & 1 & 1 & 0 & \textcolor{red}{10} & 3 \\ \hline
+        1 & 0 & 1 & 1 & \textcolor{red}{11} & 3 \\ \hline
+        \end{array}
+        \]
+        \caption{Zawartość pamięci RAM dla pierwszego programu testowego}
+    \end{table}
 
 \end{document}
