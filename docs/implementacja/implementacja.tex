@@ -293,9 +293,207 @@ z którego odczytywana jest instrukcja. Po przepełnieniu się generatora GS mo�
 \end{lstlisting}
 
 \par
+Funkcja \texttt{schedule\_execution} jest funkcją sterującą pracą zestawu. Funkcja ta jest wywoływana w głównej pętli programu. 
+Kontrola pracy zestawu odbywa się za pomocą maszyny stanów:
 
+\begin{itemize}
+    \item \texttt{EXECUTION} - zestaw wykonuje mikrocykl
+    \item \texttt{CYCLE\_DONE} - zakończyło się wykonywanie cyklu lub mikrocyklu
+    \item \texttt{USER\_INPUT} - zestaw oczekuje na wprowadzenie danych przez użytkownika
+    \item \texttt{DONE} - zestaw zakończył pracę
+    \item \texttt{READY} - zestaw jest gotowy do rozpoczęcia pracy
+    \item \texttt{EXCEPTION} - wystąpił błąd
+\end{itemize}
+
+\par
+Kiedy zestaw jest w stanie \texttt{EXECUTION} funkcja wywołuje funkcję \texttt{process\_microcycle} która wykonuje mikrocykl.
+W przypadku pracy w trybie Program funkcja implementuje dodatkowy mechanizm opóźniający wykonywanie kolejnych mikrocykli.
+Jest to konieczne ze względu na dużą prędkość mikrokontrolera która powoduje że zmiany stanów na diodach LED wizualizujących pracę 
+zestawu są zbyt szybkie.
+
+\begin{lstlisting}[language=C++]
+    if (internal_state == EXECUTION){
+            uint64_t time_difference = millis() - last_successful_ucycle;
+            if(time_difference > execution_speed || type == CYCLE || type == MICRO_CYCLE){
+                ucycle_return = process_microcycle();
+            }
+\end{lstlisting}
+
+\par
+Następnie przetwarzana jest wartość zwracana przez funkcję \texttt{process\_microcycle}. W przypadku gdy funkcja zwróciła kod \texttt{SUCCESS}
+dla trybów pracy Cykl oraz Mikrocykl sprawdzane są warunki zakończenia cyklu pracy zestawu. Następnie jest sprawdzany warunek zakończenia pracy
+zestawu niezależnie od trybu pracy. W przypadku zestaw wykonał wszystkie instrukcje znajdujące się w rejestrze $R_P$ zestaw przechodzi w stan \texttt{DONE}.
+
+\begin{lstlisting}[language=C++]
+            switch (ucycle_return){
+                case SUCCESS:
+                last_successful_ucycle = millis();
+                    switch (type){
+                        case CYCLE:
+                            if(Gs == 0){
+                                internal_state = CYCLE_DONE;
+                            }
+                            break;
+                        case MICRO_CYCLE:
+                            internal_state = CYCLE_DONE;
+                            break;
+                        case PROGRAM:
+                            break;
+                        default:
+                            internal_state = EXCEPTION;
+                            break;
+                    }
+                    if (Rp_address > 15){
+                        internal_state = DONE;
+                    }
+                    break;
+                case NEED_INPUT:
+                    internal_state = USER_INPUT;
+                    break;
+                case ERROR:
+                    internal_state = EXCEPTION;
+                    break;
+                default:
+                    internal_state = EXCEPTION;
+                    break;
+            }
+        }
+        return internal_state;
+    }
+\end{lstlisting}
+
+\par
+W przypadku gdy funkcja zwróciła kod \texttt{NEED\_INPUT} zestaw przechodzi w stan \texttt{USER\_INPUT}. W tym stanie zestaw oczekuje na wprowadzenie
+wartości przez użytkownika. Po wprowadzeniu wartości zestaw przechodzi w stan \texttt{EXECUTION} i kontynuuje pracę. W przypadku wystąpienia
+błędu zestaw przechodzi w stan \texttt{EXCEPTION}. Na koniec funkcja zwraca stan Wewnętrznej maszyny stanów.
 
 \subsubsection{Obsługa interfejsu użytkownika}
+
+W celu obsługi interfejsu użytkownika przy pomocy biblioteki Arduino menu w pierwszej kolejności należy zdefiniować sterowniki urządzeń
+wejściowych oraz wyjściowych. W naszym przypadku urządzeniami wejściowymi jest obrót enkoderem oraz wbudowany w enkoder przycisk, urządzeniem wyjściowym
+jest wyświetlacz LCD. Biblioteka Arduino menu dostarcza sterowniki enkodera oraz przycisku w formie klas.
+
+\begin{lstlisting}[language=C++]
+    encoderIn<ENC_S2,ENC_S1> encoder;//simple quad encoder driver
+    encoderInStream<ENC_S2,ENC_S1> encStream(encoder,ENC_SENSITIVITY);
+
+    //a keyboard with only one key as the encoder button
+    keyMap encBtn_map[]={{-ENC_SW,defaultNavCodes[enterCmd].ch}};
+    keyIn<1> encButton(encBtn_map);//1 is the number of keys
+
+    //input from the encoder + encoder button + serial
+    menuIn* inputsList[]={&encStream,&encButton};
+    chainStream<2> in(inputsList);//2 is the number of inputs
+\end{lstlisting}
+
+Urządzenia wejściowe obsługiwane są na zasadzie strumieni. W powyższym kodzie zdefiniowano strumień wejściowy \texttt{chainStream} który
+jest połączeniem strumieni enkodera oraz przycisku.
+\par
+Obsługa strumienia wyjściowego dla wyświetlacza LCD wymaga zadeklarowania obiektu klasy \texttt{LiquidCrystal\_PCF8574} oraz przy
+pomocy makra \texttt{MENU\_OUTPUTS} dostarczanego przez bibliotekę Arduino menu przekazania obiektu do listy wyjść dla menu.
+
+\begin{lstlisting}[language=C++]
+    LiquidCrystal_PCF8574 lcd(0x27);
+    MENU_OUTPUTS(out, 3, LCD_OUT(lcd,{0,0,20,4}), NONE);
+\end{lstlisting}
+
+\par
+Następnym krokiem jest deklaracja głównego okna menu. Jest to pierwsze okno które jest wyświetlane po uruchomieniu programu.
+Tworzenie okna menu odbywa się przy pomocy makra \texttt{MENU}. Makro to przyjmuje szereg argumentów które decydują o 
+tytule, wyglądzie, oraz reakcjach okna na zdarzenia. Jako argumenty przekazywane są również opcje które będą dostępne w oknie.
+Okno jest ustawiane jako główne przy pomocy makra \texttt{NAVROOT}.
+
+\begin{lstlisting}[language=C++]
+    MENU(busMainMenu,"Szyna danych",doNothing,noEvent,wrapStyle
+    ,SUBMENU(start_execution)
+    ,SUBMENU(ram_edit)
+    ,SUBMENU(program_edit)
+    ,FIELD(execution_clock,"Zegar","Hz",1,20,1,0,set_exec_speed_commit,anyEvent,wrapStyle)
+    ,OP("Reset",reset_system_commit,enterEvent)
+  );
+  NAVROOT(nav, busMainMenu, 3, in, out);
+\end{lstlisting}
+
+\par
+Biblioteka Arduino menu posiada szereg wbudowanych typów opcji które można wykorzystać w oknach menu. W projekcie wykorzystano
+następujące opcje:
+\begin{itemize}
+    \item \texttt{SUBMENU} - opcja która przenosi do innego okna
+    \item \texttt{FIELD} - pozwala na edycję wartości oraz wyświetlanie wartości zmiennej
+    \item \texttt{OP} - pole tekstowe które może reagować na zdarzenia takie jak wciśnięcie przycisku
+    \item \texttt{EXIT} - powrót do poprzedniego okna
+\end{itemize}
+
+\par
+Obsługa opcji \texttt{FIELD} wymaga zdefiniowania zmiennej w której będzie przechowana zmieniana wartość oraz granic jakie wartość może przyjąć.
+W przykład opcji o nazwie \texttt{"Zegar"} znajdującej się na głównym ekranie zmienna \texttt{execution\_clock} przechowuje wartość zegara,
+minimalna wartość to 1, maksymalna 20, a krok zmiany to 1. Dodatkowo zdefiniowano funkcje \texttt{set\_exec\_speed\_commit} która jest wywoływana
+podczas zmian wartości zmiennej. Funkcja ta na bieżąco przekazuje wartość zmiennej do obiektu klasy odpowiedzialnej za symulację pracy zestawu.
+
+\begin{lstlisting}[language=C++]
+    uint8_t execution_clock = 10;
+
+    result set_exec_speed_commit(eventMask e,navNode& nav, prompt &item) {
+      cpu.set_execution_speed(1000/execution_clock);
+      return proceed;
+    }
+\end{lstlisting}
+
+\par
+Obsługa opcji \texttt{OP} polega na zdefiniowaniu funkcji która zostaje wywołana po wciśnięciu przycisku. W przypadku opcji \texttt{"Reset"}
+znajdującej się na głównym ekranie wywoływana jest funkcja \texttt{reset\_system\_commit} która resetuje stan zestawu.
+
+\begin{lstlisting}[language=C++]
+    result reset_system_commit(eventMask e,navNode& nav, prompt &item) {
+        cpu.clear();
+        return proceed;
+      }
+\end{lstlisting}
+
+\par
+Zapis wartości do pamięcią RAM oraz $R_P$ odbywa się na podobnej zasadzie. Zadeklarowano zmienne \texttt{ram\_address\_edit} oraz \texttt{ram\_value}
+przechowujące obecną wartość adresu pamięci RAM oraz wartość w obecnej komórce pamięci RAM. Obydwie te zmienne są przypisywane
+do odpowiednich opcji \texttt{FIELD} w oknie edycji pamięci RAM.
+
+\begin{lstlisting}[language=C++]
+    uint8_t ram_address_edit = 0;
+    uint8_t ram_value = 0;
+    
+    MENU(ram_edit,"Zapis RAM",doNothing,noEvent,noStyle
+      ,FIELD(ram_address_edit,"Adres:","",0,63,1,0,display_ram,anyEvent,wrapStyle)
+      ,OP("Zapisz",edit_ram_commit,enterEvent)
+      ,FIELD(ram_value,"Wartosc:","",0,255,0,0,doNothing,noEvent,noStyle)
+      ,EXIT("<Wroc")
+    );
+    
+\end{lstlisting}
+
+Po wybraniu odpowiedniego adresu w opcji \texttt{"Adres"} należy wcisnąć opcję \texttt{"Zapisz"} która wywoła funkcję \texttt{edit\_ram\_commit}.
+Funkcja ta zapisuje wartość z klawiatury wprowadzania danych do pamięci RAM na adresie \texttt{ram\_address\_edit}. Oraz inkrementuje wartość
+w zmiennej przechowującej adres.
+
+\begin{lstlisting}[language=C++]
+    result edit_ram_commit(eventMask e,navNode& nav, prompt &item) {
+        cpu.set_RAM(ram_address_edit, io.read_data_input_buttons());
+        ram_address_edit++;
+        ram_value = cpu.get_RAM(ram_address_edit);
+        return proceed;
+      }
+\end{lstlisting}
+
+W celu zapewnienia interaktywnego podglądu wartości pamięci RAM pod aktualnie wybranym adresem do opcji \texttt{"Adres"} przypisano 
+funkcję \texttt{display\_ram} wywoływaną przy każdym zdarzeniu. Powoduje to wywołanie funkcji przy każdej zmianie adresu w polu edycji.
+Funkcja ta pobiera wartość z pamięci RAM pod adresem \texttt{ram\_address\_edit} i przypisuje ją do zmiennej \texttt{ram\_value} 
+co powoduje aktualizacje wartości wyświetlanej w polu \texttt{"Wartość"}.
+
+\begin{lstlisting}[language=C++]
+      result display_ram(eventMask e,navNode& nav, prompt &item) {
+        ram_value = cpu.get_RAM(ram_address_edit);
+        return proceed;
+      }
+\end{lstlisting}
+
+\subsubsection{Główna pętla programu}
 
 
 
