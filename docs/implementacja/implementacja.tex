@@ -140,7 +140,7 @@ Do odczytu przycisków służy metoda \texttt{read\_all\_buttons} która zwraca 
 \end{lstlisting}
 
 Wartość jest odczytywana w pętli wykonywanej dla każdego przycisku. W każdej iteracji odczytywany jest stan danego przycisku który
-jest następnie przesuwany o ilość bitów odpowiadającą numerowi przycisku otrzymana wartość poddawana bitowej sumie logicznej z wartością zmiennej
+jest następnie przesuwany o liczbę bitów odpowiadającą numerowi przycisku otrzymana wartość poddawana bitowej sumie logicznej z wartością zmiennej
 zwracanej przez funkcje. W ten sposób otrzymujemy 16 bitową liczbę w której każdy bit odpowiada stanowi jednego przycisku.
 Funkcje \texttt{read\_user\_input\_buttons} oraz \texttt{read\_data\_input\_buttons} odczytują odpowiednio dane
 z klawiatury wprowadzania danych na szynę oraz z klawiatury wprowadzania danych do RAM/$R_P$. Obydwie funkcje używają funkcji \texttt{read\_all\_buttons}
@@ -242,7 +242,7 @@ Klasa posiada również obiekt klasy \texttt{ALU} symulującej jednostkę arytme
 \par
 Podstawową funkcją klasy jest funkcja \texttt{process\_microcycle} która realizuje wykonuje jeden mikrocykl. 
 W pierwszej kolejności na podstawie wartości rejestru $R_I$ oraz wartości generatora stanów $G_S$ obliczany jest adres w pamięci RAM z którego 
-odczytana zostanie instrukcja Następnie z odczytanej instrukcji wydobywane są bity operacji dla ALU, kod transmitera oraz odbiornika. 
+odczytana zostanie instrukcja. Następnie z odczytanej instrukcji wydobywane są bity operacji dla ALU, kod transmitera oraz odbiornika. 
 
 \begin{lstlisting}[language=C++]
     ucycle_status bus_cpu::process_microcycle(){
