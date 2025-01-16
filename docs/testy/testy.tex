@@ -11,6 +11,7 @@
 \usepackage{capt-of}
 \usepackage{hyperref}
 \usepackage{float}
+\usepackage{multirow}
 \graphicspath{{../}}
 \author{Cezary Wieczorkowski}
 \date{\today}
@@ -26,28 +27,98 @@
 
 \section{Testy stanowiska}
 
+Testy stanowiska przeprowadzono z wykorzystaniem programów testowych podobnych do programów uruchamianych na zestawie w ramach ćwiczeń laboratoryjnych.
+Programy testowe zostały napisane w taki sposób, aby sprawdzić poprawność jak największej ilości elementów zestawu.
+
+\subsection{Program testujący operacje arytmetyczne}
+
+    Program testuje poprawność wykonywania operacji na jednostce arytmetyczno logicznej. Program został celowo
+    napisany tak aby zapisywał wartości do wszystkich dostępnych odbiorników w celu przetestowania ich poprawnej implementacji. 
+    Program wykonuje następujące operacje:
+
+    \begin{itemize}
+        \item Pobranie danych z klawiatury wejściowej do $R_A$.
+        \item Skopiowanie do $R_A$ do do $R_B$.
+        \item Skopiowanie do $R_A$ do do $R_B$.
+        \item Pomnożenie $R_A$ przez 2 i zapisanie wyniku w $R_A$.
+        \item Dodanie $R_A$ do $R_B$ i wystawienie wyniku do $R_{wy}$.
+    \end{itemize}
+
+    W pierwszym cyklu program pobiera dane z klawiatury wejściowej i zapisuje je do rejestru $R_A$. Następnie kopiuje je do 
+    rejestru $R_B$ oraz $R_C$. W kolejnym cyklu zapisuje zawartość $R_A$ do $R_1$ oraz $R_2$, następnie zapisuje wartość na wyjściu
+    jednostki ALU do rejestru $R_{wy}$. Zapis do rejestru $R_2$ jest w tym wypadku wykonywany tylko w celu poprawnego ustawienia kodu
+    operacji w jednostce ALU, gdyż wykonywana operacja mnoży zawartość rejestru $R_1$ przez 2.
+    W ostatnim cyklu program dodaje do siebie zawartości rejestrów $R_A$ i $R_B$ i zapisuje wynik w $R_{wy}$.
+
     \begin{table}[ht]
         \[
-        \begin{array}{|c|c|c|c|c|c|}
+        \begin{array}{|ccc|ccc|cc|c|c|}
         \hline
-        \textbf{Nadajnik} & \textbf{Odbiornik} & \textbf{ALU} & \textbf{Adres} & \textbf{Rp} \\ \hline
-        1 & 0 & 1 & 0 & \textcolor{red}{0} & 0 \\ \hline
-        1 & 0 & 0 & 1 & \textcolor{red}{1} & 0 \\ \hline
-        0 & 1 & 0 & 0 & \textcolor{red}{2} & 0 \\ \hline
-        0 & 1 & 1 & 0 & \textcolor{red}{3} & 0 \\ \hline
-        \multicolumn{5}{|c|}{} \\ \hline
-        0 & 0 & 0 & 1 & \textcolor{red}{4} & 3 \\ \hline
-        0 & 0 & 0 & 1 & \textcolor{red}{5} & 3 \\ \hline
-        0 & 1 & 0 & 0 & \textcolor{red}{6} & 3 \\ \hline
-        1 & 0 & 1 & 1 & \textcolor{red}{7} & 3 \\ \hline
-        \multicolumn{5}{|c|}{} \\ \hline
-        0 & 0 & 0 & 1 & \textcolor{red}{8} & 3 \\ \hline
-        0 & 0 & 0 & 1 & \textcolor{red}{9} & 3 \\ \hline
-        0 & 1 & 1 & 0 & \textcolor{red}{10} & 3 \\ \hline
-        1 & 0 & 1 & 1 & \textcolor{red}{11} & 3 \\ \hline
+        \multicolumn{3}{|c|}{\textbf{Nadajnik}} & \multicolumn{3}{|c|}{\textbf{Odbiornik}}
+        & \multicolumn{2}{|c|}{\textbf{ALU}} & \textbf{Adres} & \textbf{$R_P$} \\ \hline
+        1 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & \textcolor{red}{0000 00} & \multirow{4}{*}{0001} \\ \cline{1-9}
+        0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & \textcolor{red}{0000 01} & \\ \cline{1-9}
+        0 & 0 & 1 & 0 & 1 & 1 & 0 & 0 & \textcolor{red}{0000 10} & \\ \cline{1-9}
+        0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \textcolor{red}{0000 11} & \\ \hline
+        \multicolumn{5}{c}{} \\ \hline
+        0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \textcolor{red}{0001 00} & \multirow{4}{*}{0010} \\ \cline{1-9}
+        0 & 0 & 1 & 1 & 0 & 0 & 1 & 0 & \textcolor{red}{0001 01} & \\ \cline{1-9}
+        0 & 0 & 1 & 1 & 0 & 1 & 0 & 1 & \textcolor{red}{0001 10} & \\ \cline{1-9}
+        1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & \textcolor{red}{0001 11} & \\ \hline
+        \multicolumn{5}{c}{} \\ \hline
+        0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \textcolor{red}{0010 00} & \multirow{4}{*}{0011} \\ \cline{1-9}
+        0 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & \textcolor{red}{0010 01} &  \\ \cline{1-9}
+        0 & 1 & 0 & 1 & 0 & 1 & 0 & 1 & \textcolor{red}{0010 10} & \\ \cline{1-9}
+        1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \textcolor{red}{0010 11} & \\ \hline
         \end{array}
         \]
-        \caption{Zawartość pamięci RAM dla pierwszego programu testowego}
+        \caption{Program testujący operacje arytmetyczne}
     \end{table}
+
+\subsection{Program testujący instrukcje skoku}
+
+    Program testuje poprawność wykonywania skoku pomiędzy instrukcjami. Program wykonuje następujące operacje:
+
+    \begin{itemize}
+        \item Pobranie danych z klawiatury wejściowej do $R_A$.
+        \item Wykonanie skoku w zależności od wartości $R_A$.
+        \item Jeśli $R_A$ = 1 zanegowanie $R_A$ i zapisanie wyniku w $R_{wy}$.
+        \item Jeśli $R_A$ = 2 podzielenie $R_A$ przez 2 i zapisanie wyniku w $R_{wy}$.
+    \end{itemize}
+
+    W celu wykonania skoku program w ostatniej mikroinstrukcji pierwszego cyklu wykonuje operacje zapisu zawartości rejestru $R_A$ do rejestru $R_I$. 
+    Spowoduje to zinterpretowanie wartości w $R_A$ jako czterech najstarszych bitów adresu, czyli adresu kolejnych czterech instrukcji.
+    W tym wypadku zakładamy jeśli wartość w rejestrze $R_A$ jest równa 1 program w kolejnym cyklu skoczy do instrukcji o adresie 000100.
+    Jeśli wartość w rejestrze $R_A$ jest równa 2 program w kolejnym cyklu skoczy do instrukcji o adresie 001000. Pod tymi rozpoczynają się
+    cykle mikroinstrukcji odpowiednio dla zanegowania wartości w $R_A$ i podzielenia wartości w $R_A$ przez 2.
+
+    \begin{table}[ht]
+        \[
+        \begin{array}{|ccc|ccc|cc|c|c|}
+        \hline
+        \multicolumn{3}{|c|}{\textbf{Nadajnik}} & \multicolumn{3}{|c|}{\textbf{Odbiornik}}
+        & \multicolumn{2}{|c|}{\textbf{ALU}} & \textbf{Adres} & \textbf{$R_P$} \\ \hline
+        1 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & \textcolor{red}{0000 00} & \multirow{4}{*}{0011} \\ \cline{1-9}
+        0 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & \textcolor{red}{0000 01} & \\ \cline{1-9}
+        0 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & \textcolor{red}{0000 10} & \\ \cline{1-9}
+        0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \textcolor{red}{0000 11} & \\ \hline
+        \multicolumn{5}{c}{} \\ \hline
+        0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & \textcolor{red}{0001 00} & \multirow{4}{*}{0011} \\ \cline{1-9}
+        0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & \textcolor{red}{0001 01} & \\ \cline{1-9}
+        0 & 0 & 1 & 1 & 0 & 1 & 0 & 0 & \textcolor{red}{0001 10} & \\ \cline{1-9}
+        1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \textcolor{red}{0001 11} & \\ \hline
+        \multicolumn{5}{c}{} \\ \hline
+        0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & \textcolor{red}{0010 0} & \multirow{4}{*}{0011} \\ \cline{1-9}
+        0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & \textcolor{red}{0010 01} &  \\ \cline{1-9}
+        0 & 0 & 1 & 1 & 0 & 1 & 0 & 1 & \textcolor{red}{0010 10} & \\ \cline{1-9}
+        1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \textcolor{red}{0010 11} & \\ \hline
+        \end{array}
+        \]
+        \caption{Program testujący instrukcje skoku}
+    \end{table}
+
+    W rozpatrywanym programie wartość w rejestrze $R_P$ jest równa 0011. Dzięki temu po wykonaniu instrukcji warunkowej program 
+    powróci do wykonywania dalszych instrukcji. Gdyby wartości w rejestrze $R_P$ rozpoczynały się od 1 i zwiększały o 1  jak w większości 
+    przypadków program przy wprowadzeniu wartości 1 wykonał by obie instrukcje warunkowe gdyż druga instrukcja nie zostałaby pominięta.
 
 \end{document}
