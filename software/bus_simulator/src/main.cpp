@@ -193,22 +193,26 @@ void setup() {
   lcd.setCursor(0, 1);
   lcd.print("symulator V1.0");
   delay(2000);
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
 }
 
 void loop() {
+
   bus_cpu_state cpu_state;
   nav.poll();
   cpu_state = cpu.schedule_execution();
 
-  if{cpu_state == bus_cpu_state::USER_INPUT} {
+  if(cpu_state == bus_cpu_state::USER_INPUT) {
     nav.idleOn(user_input);
   }
-  else if{cpu_state == bus_cpu_state::EXCEPTION} {
+  else if(cpu_state == bus_cpu_state::EXCEPTION) {
     Serial.println("Zestaw napotkał błąd");
   }
 
   io.set_displayed_register(displayed_register);
   cpu.get_register_values(cpu_status);
   io.render_led(cpu_status);
-  delay(50);
-}
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(100);
+  digitalWrite(LED_BUILTIN, HIGH);}

@@ -5548,7 +5548,6 @@
 	)
 	(label "LCD_SDA"
 		(at 168.91 125.73 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5559,7 +5558,6 @@
 	)
 	(label "ENC_S1"
 		(at 95.25 102.87 90)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5570,7 +5568,6 @@
 	)
 	(label "ENC_S2"
 		(at 97.79 102.87 90)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5581,7 +5578,6 @@
 	)
 	(label "ENC_SW"
 		(at 173.99 139.065 90)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5592,7 +5588,6 @@
 	)
 	(label "LCD_SCL"
 		(at 198.12 125.73 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5603,7 +5598,6 @@
 	)
 	(label "ENC_S1"
 		(at 168.91 139.065 90)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5614,7 +5608,6 @@
 	)
 	(label "LCD_SDA"
 		(at 115.57 156.21 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5625,7 +5618,6 @@
 	)
 	(label "LCD_SCL"
 		(at 115.57 153.67 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5636,7 +5628,6 @@
 	)
 	(label "ENC_S2"
 		(at 171.45 139.065 90)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5647,7 +5638,6 @@
 	)
 	(label "ENC_SW"
 		(at 100.33 102.87 90)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6347,7 +6337,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical"
 			(at 191.77 148.59 0)
 			(effects
 				(font
@@ -12576,7 +12566,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical"
 			(at 171.45 148.59 0)
 			(effects
 				(font
